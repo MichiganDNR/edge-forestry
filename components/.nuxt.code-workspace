@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": "../.nuxt"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../layouts"
+		},
+		{
+			"path": "../node_modules"
+		},
+		{
+			"path": "../pages"
+		},
+		{
+			"path": "../public"
+		},
+		{
+			"path": "../public/images"
+		},
+		{
+			"path": "../server"
+		}
+	],
+	"settings": {}
+}
