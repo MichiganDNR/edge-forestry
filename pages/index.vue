@@ -82,7 +82,29 @@
       title="Meet the Team"
       description="Edge Forestry is redefining how we detect and manage plant conditions using AI."
     >
-      <div class="w-full max-w-2xl mx-auto h-[350px] mb-7 2xl:max-w-4xl 2xl:h-[550px] bg-white rounded-2xl shadow-md border border-gray-200"></div>
+      <div class="w-full flex justify-center mb-7">
+        <div class="flex flex-row gap-4">
+          <div class="w-64 h-[350px] 2xl:w-80 2xl:h-[450px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+            <img 
+              src="/images/Rahat.png" 
+              class="w-full h-full object-cover object-center"
+            />
+          </div>
+          <div class="w-64 h-[350px] 2xl:w-80 2xl:h-[450px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+            <img 
+              src="/images/Muttaki.png" 
+              class="w-full h-full object-cover object-center"
+            />
+          </div>
+          <div class="w-64 h-[350px] 2xl:w-80 2xl:h-[450px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+            <img 
+              src="/images/Collin.png" 
+              class="w-full h-full object-cover object-center"
+            />
+          </div>
+        </div>
+      </div>
+
       <div class="flex justify-center">
         <Button class="mt-7" label="Learn More" href="https://www.gvsu.edu/bluenucleus/" external />
       </div>
