@@ -45,7 +45,15 @@
       title="See the Process"
       description="Upload pictures of trees for instant analysis. Our AI predicts disease probability."
     >
-      <div class="w-full max-w-2xl mx-auto h-[350px] mb-7 2xl:max-w-4xl 2xl:h-[550px] bg-white rounded-2xl shadow-md border border-gray-200"></div>
+      <div class="w-full max-w-2xl mx-auto h-[350px] mb-7 2xl:max-w-4xl 2xl:h-[550px] bg-white rounded-2xl shadow-md border border-gray-200">
+        <video
+          src="/video/OakWiltDemoV1.mp4"
+          controls
+          class="w-full h-auto rounded-2xl"
+        >
+      Your browser does not support the video tag.
+    </video>
+      </div>
       <div class="flex justify-center">
         <Button class="mt-7" label="Learn More" :scrollTo="'faqs'" />
       </div>
@@ -84,23 +92,31 @@
     >
       <div class="w-full flex justify-center mb-7">
         <div class="flex flex-row gap-4">
-          <div class="w-64 h-[350px] 2xl:w-80 2xl:h-[450px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+          <!-- Rahat -->
+          <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
             <img 
               src="/images/Rahat.png" 
-              class="w-full h-full object-cover object-center"
+              class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
             />
+            <p class="mt-2 text-center text-green-950 font-medium">Rahat Rafiq</p>
           </div>
-          <div class="w-64 h-[350px] 2xl:w-80 2xl:h-[450px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+
+          <!-- Muttaki -->
+          <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
             <img 
               src="/images/Muttaki.png" 
-              class="w-full h-full object-cover object-center"
+              class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
             />
+            <p class="mt-2 text-center text-green-950 font-medium">Muttaki Bismoy</p>
           </div>
-          <div class="w-64 h-[350px] 2xl:w-80 2xl:h-[450px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+
+          <!-- Collin -->
+          <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
             <img 
               src="/images/Collin.png" 
-              class="w-full h-full object-cover object-center"
+              class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
             />
+            <p class="mt-2 text-center text-green-950 font-medium">Collin Brennan</p>
           </div>
         </div>
       </div>
@@ -228,17 +244,7 @@ const faqState = ref({
       question: 'Can I use this service for commercial forestry?',
       answer: 'Yes, our platform is designed for both individuals and forestry professionals.',
       open: false,
-    },
-    {
-      question: 'Informational Question?',
-      answer: 'N/A',
-      open: false,
-    },
-    {
-      question: 'Informational Question?',
-      answer: 'N/A',
-      open: false,
-    },
+    }
   ]
 })
 
