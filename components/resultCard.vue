@@ -1,11 +1,11 @@
 <template>
-  <div class="bg-white rounded-2xl shadow-md p-4 flex flex-col gap-2 w-full">
+  <div class="bg-white rounded-2xl shadow-md p-4 flex flex-col gap-2 w-1/8 mt-8">
     <!-- Image + File Name -->
     <div>
       <img
         :src="imageUrl"
         alt="Result image"
-        class="w-full h-64 object-contain rounded-md border border-green-950"
+        class="w-full h-32 object-contain rounded-md border border-green-950"
       />
       <a
         :href="imageUrl"
@@ -23,11 +23,11 @@
 
     <!-- Probability -->
     <div class="text-green-950 text-sm">
-      <strong>Probability:</strong> {{ (probability * 100).toFixed(2) }}%
+      <strong>Probability:</strong><br> {{ (probability * 100).toFixed(2) }}%
     </div>
 
     <!-- Feedback Buttons -->
-    <div class="flex flex-row gap-2 mt-2">
+    <div class="flex flex-col gap-2 mt-2">
       <button
         class="bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm hover:bg-green-200"
         @click="sendFeedback(true)"

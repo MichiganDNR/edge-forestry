@@ -109,7 +109,7 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+      <div class="flex justify-center grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 flex-wrap gap-2">
         <ResultCard
           v-for="(result, index) in paginatedResults"
           :key="index"
@@ -444,7 +444,7 @@ results.value = [
   })
 
 const currentPage = ref(1)
-const itemsPerPage = 20
+const itemsPerPage = 28
 
 const totalPages = computed(() => {
   return Math.ceil(results.value.length / itemsPerPage)

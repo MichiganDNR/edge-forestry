@@ -2,7 +2,9 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/tailwindcss'],
+  ssr: false,
+  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
+  plugins: ['~/plugins/firebase.client.js'],
   tailwindcss: {
     exposeConfig: true,
     viewer: true,
