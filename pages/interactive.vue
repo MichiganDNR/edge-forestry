@@ -86,14 +86,16 @@
       
     </div>
     <!-- Centered Login Button Below Map -->
-    <div class="flex justify-center mt-8">
-      <button
-        type="button"
-        class="bg-green-700 hover:bg-green-800 text-white border-3 border-green-900 font-semibold py-3 px-6 rounded-3xl w-56"
-      >
-        Log in to analyze results
-      </button>
-    </div>
+    <NuxtLink to="/login">
+      <div class="flex justify-center mt-8">
+        <button
+          type="button"
+          class="bg-green-700 hover:bg-green-800 text-white border-3 border-green-900 font-semibold py-3 px-6 rounded-3xl w-56"
+        >
+          Log in to analyze results
+        </button>
+      </div>
+    </NuxtLink>
   </Appear>
 </template>
 

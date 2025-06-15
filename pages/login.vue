@@ -1,19 +1,13 @@
 <template>
   <div class="min-h-screen flex flex-col items-center p-4">
     <h1 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-12 mt-12">
-      Sign Up
+      Login
     </h1>
-    <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-      <h1 class="text-3xl font-semibold mb-6 text-green-950 text-center">Create an Account</h1>
 
-      <form @submit.prevent="handleSignUp" class="flex flex-col gap-4">
-        <input
-          v-model="name"
-          type="name"
-          placeholder="Full Name"
-          required
-          class="border border-gray-300 rounded p-2 w-full"
-        />
+    <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+      <h1 class="text-3xl font-semibold mb-6 text-green-950 text-center">Welcome Back</h1>
+
+      <form @submit.prevent="handleLogin" class="flex flex-col gap-4">
         <input
           v-model="email"
           type="email"
@@ -28,41 +22,74 @@
           required
           class="border border-gray-300 rounded p-2 w-full"
         />
+
         <button
           type="submit"
           class="bg-green-600 text-white rounded-2xl p-2 hover:bg-green-700"
         >
-          Sign Up
+          Log In
         </button>
+
         <p v-if="error" class="text-red-500 text-sm mt-2 text-center">{{ error }}</p>
-        <p v-if="success" class="text-green-700 text-sm mt-2 text-center">Account created! 🎉</p>
       </form>
+
+      <!-- Create Account Link -->
+      <div class="text-center mt-6">
+        <p class="text-gray-600">
+          Don’t have an account?
+          <NuxtLink to="/signup" class="text-green-700 font-semibold hover:underline">
+            Create Account
+          </NuxtLink>
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
+import { useUserStore } from '@/stores/user'
 
 const email = ref('')
 const password = ref('')
 const error = ref('')
-const success = ref(false)
 
-const { $auth } = useNuxtApp()
+const { $auth, $db } = useNuxtApp()
+const userStore = useUserStore()
+const router = useRouter()
 
-const handleSignUp = async () => {
+const handleLogin = async () => {
   error.value = ''
-  success.value = false
+
   try {
-    await createUserWithEmailAndPassword($auth, email.value, password.value)
-    success.value = true
-    email.value = ''
-    password.value = ''
+    const userCredential = await signInWithEmailAndPassword($auth, email.value, password.value)
+    const user = userCredential.user
+
+    // Get user's Firestore profile (credits, etc.)
+    const userDocRef = doc($db, 'users', user.uid)
+    const userSnap = await getDoc(userDocRef)
+
+    if (userSnap.exists()) {
+      const data = userSnap.data()
+      userStore.setUser(user)
+      userStore.setCredits(data.credit)
+    } else {
+      error.value = 'No profile found for this user.'
+      return
+    }
+
+    // Redirect to dashboard or home
+    router.push('/dashboard')
   } catch (err) {
-    error.value = err.message
+    if (err.code === 'auth/user-not-found') {
+      error.value = 'No user found with that email.'
+    } else if (err.code === 'auth/wrong-password') {
+      error.value = 'Incorrect password.'
+    } else {
+      error.value = err.message
+    }
   }
 }
 </script>
-
