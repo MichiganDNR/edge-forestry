@@ -1,8 +1,10 @@
 // ~/plugins/firebase.client.js
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
+import { useUserStore } from '@/stores/user'
 
-export default defineNuxtPlugin(nuxtApp => {
+export default defineNuxtPlugin((nuxtApp) => {
   const firebaseConfig = {
     apiKey: "AIzaSyCshHqp6lSreG77Qgy3-eQyT9Xw_Bh6aKE",
     authDomain: "edgeforestryai.firebaseapp.com",
@@ -14,8 +16,23 @@ export default defineNuxtPlugin(nuxtApp => {
     measurementId: "G-LNY1RL87S3"
   }
 
-  const firebaseApp = initializeApp(firebaseConfig)
-  const auth = getAuth(firebaseApp)
+  // Initialize Firebase app and services
+  const app = initializeApp(firebaseConfig)
+  const auth = getAuth(app)
+  const db = getFirestore(app)
+  
 
   nuxtApp.provide('auth', auth)
+  nuxtApp.provide('db', db)
+
+  // Setup auth state listener to update pinia store reactively
+  onAuthStateChanged(auth, (user) => {
+    const userStore = useUserStore(nuxtApp.$pinia) 
+    if (user) {
+      userStore.setUser(user)
+    } else {
+      userStore.setUser(null)
+    }
+  })
 })
+

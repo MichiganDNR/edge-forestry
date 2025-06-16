@@ -5,6 +5,7 @@ export default defineNuxtConfig({
   ssr: false,
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
   plugins: ['~/plugins/firebase.client.js'],
+  ssr: false,
   tailwindcss: {
     exposeConfig: true,
     viewer: true,

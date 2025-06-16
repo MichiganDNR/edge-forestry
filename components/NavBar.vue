@@ -61,14 +61,23 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from './MainButton.vue' 
+import { useUserStore } from '@/stores/user'  
 
 const route = useRoute();
 const router = useRouter();
 const isHome = computed(() => route.path === '/');
+const userStore = useUserStore()
+const user = userStore.user
+
 
 const goToPage = () => {
-  router.push('/interactive') // change to your desired route
+  if (!user) {
+    router.push('/interactive')
+  } else {
+    router.push('/settings')
+  }
 }
+
 
 const navItems = [
   { text: 'Account', id: '#' },

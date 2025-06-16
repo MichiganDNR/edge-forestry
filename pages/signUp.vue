@@ -30,14 +30,23 @@
           required
           class="border border-gray-300 rounded p-2 w-full"
         />
+        <input
+          v-model="confirmPassword"
+          type="password"
+          placeholder="Confirm Password"
+          required
+          class="border border-gray-300 rounded p-2 w-full"
+        />
+
         <button
           type="submit"
-          class="bg-green-600 text-white rounded-2xl p-2 hover:bg-green-700"
+          :disabled="loading"
+          class="bg-green-600 text-white rounded-2xl p-2 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign Up
+          {{ loading ? 'Creating...' : 'Sign Up' }}
         </button>
         <p v-if="error" class="text-red-500 text-sm mt-2 text-center">{{ error }}</p>
-        <p v-if="success" class="text-green-700 text-sm mt-2 text-center">Account created! 🎉</p>
+        <p v-if="success" class="text-green-700 text-sm mt-2 text-center">Account created!</p>
       </form>
 
       <div class="text-center mt-6">
@@ -54,26 +63,75 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useNuxtApp } from '#app'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { useUserStore } from '@/stores/user'
 
 const email = ref('')
 const password = ref('')
-const error = ref('')
+const confirmPassword = ref('')
+const error = ref(null)
 const success = ref(false)
+const loading = ref(false)
 
-const { $auth } = useNuxtApp()
+const { $auth, $db } = useNuxtApp()
+const router = useRouter()
+const userStore = useUserStore()
+
+const errorMessages = {
+  'auth/email-already-in-use': 'Email is already in use.',
+  'auth/invalid-email': 'Invalid email address.',
+  'auth/weak-password': 'Password is too weak.',
+}
 
 const handleSignUp = async () => {
+  if (loading.value) return
+  loading.value = true
   error.value = ''
   success.value = false
+
+  if (password.value.length < 5) {
+    error.value = 'Password must be at least 5 characters long.'
+    loading.value = false
+    return
+  }
+
+  if (password.value !== confirmPassword.value) {
+    error.value = 'Passwords do not match.'
+    loading.value = false
+    return
+  }
+
   try {
-    await createUserWithEmailAndPassword($auth, email.value, password.value)
-    success.value = true
-    email.value = ''
-    password.value = ''
+    //Create user in Firebase Auth
+    const userCredential = await createUserWithEmailAndPassword($auth, email.value, password.value)
+    const user = userCredential.user
+
+    try {
+      //Create user doc in Firestore
+      await setDoc(doc($db, 'users', user.uid), {
+        email: email.value,
+        credit: 0,
+        createdAt: serverTimestamp()
+      })
+
+      //Update store and UI state **only if Firestore write succeeds**
+      userStore.setUser(user)
+      userStore.setCredits(0)
+      success.value = true
+      router.push('/settings')
+    } catch (firestoreErr) {
+      console.error('Failed to create Firestore user doc:', firestoreErr)
+      error.value = 'Account created, but failed to save user data. Please contact support.'
+    }
+
   } catch (err) {
-    error.value = err.message
+    console.error('Firebase Auth error:', err)
+    error.value = errorMessages[err.code] || 'Something went wrong. Try again.'
+  } finally {
+    loading.value = false
   }
 }
 </script>
-

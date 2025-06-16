@@ -48,6 +48,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router' 
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
@@ -67,7 +68,6 @@ const handleLogin = async () => {
     const userCredential = await signInWithEmailAndPassword($auth, email.value, password.value)
     const user = userCredential.user
 
-    // Get user's Firestore profile (credits, etc.)
     const userDocRef = doc($db, 'users', user.uid)
     const userSnap = await getDoc(userDocRef)
 
@@ -75,13 +75,10 @@ const handleLogin = async () => {
       const data = userSnap.data()
       userStore.setUser(user)
       userStore.setCredits(data.credit)
+      router.push('/') 
     } else {
       error.value = 'No profile found for this user.'
-      return
     }
-
-    // Redirect to dashboard or home
-    router.push('/dashboard')
   } catch (err) {
     if (err.code === 'auth/user-not-found') {
       error.value = 'No user found with that email.'
