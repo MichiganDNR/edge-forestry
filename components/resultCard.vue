@@ -1,6 +1,6 @@
 <template>
   <div class="bg-white rounded-2xl shadow-md p-4 flex flex-col gap-2 w-1/8 mt-8">
-    <!-- Image + File Name -->
+    <!-- Image/File Name -->
     <div>
       <img
         :src="imageUrl"
@@ -50,15 +50,27 @@ defineProps({
   probability: Number,
   fileName: String,
   coordinates: Array,
-  onFeedback: Function
+  onFeedback: Function,
+  selectedDiseaseDropdown: String 
 })
 
-function sendFeedback(hasCondition) {
-  if (typeof onFeedback === 'function') {
-    onFeedback({ hasCondition })
-  } else {
-    console.log('Feedback:', hasCondition)
-    // fallback logic (e.g., POST to API)
+const sendFeedback = async (feedbackType) => {
+  try {
+    await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName,
+        probability,
+        coordinates,
+        feedback: feedbackType,
+        disease: selectedDiseaseDropdown
+      })
+    })
+    alert('Feedback sent!')
+  } catch (err) {
+    console.error('Feedback failed:', err)
+    alert('Failed to send feedback.')
   }
 }
 </script>

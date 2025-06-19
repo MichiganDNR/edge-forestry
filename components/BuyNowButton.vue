@@ -1,21 +1,24 @@
 <script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
 const props = defineProps({
   label: {
     type: String,
     default: 'Buy Now',
     required: true,
   },
-  href: {
-    type: String,
-    default: null,
-  },
 })
+
+const goToPage = () => {
+  router.push('/payment')
+}
 </script>
 
 <template>
   <component
-    :is="href ? 'NuxtLink' : 'button'"
-    :to="href"
+    @click="goToPage"
     class="bg-green-700 hover:bg-green-800 text-white font-semibold py-5 px-8 md:py-3
            rounded-full shadow-md transition-all duration-300 text-lg  hover:scale-105 transform"
   >

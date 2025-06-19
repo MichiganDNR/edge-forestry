@@ -1,54 +1,57 @@
 <template>
-  <div class="min-h-screen flex flex-col items-center p-4">
-    <h1 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-12 mt-12">
-      Login
-    </h1>
+  <Appear>
+    <div class="min-h-screen flex flex-col items-center p-4">
+      <h1 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-12 mt-12">
+        Login
+      </h1>
 
-    <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-      <h1 class="text-3xl font-semibold mb-6 text-green-950 text-center">Welcome Back</h1>
+      <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+        <h1 class="text-3xl font-semibold mb-6 text-green-950 text-center">Welcome Back</h1>
 
-      <form @submit.prevent="handleLogin" class="flex flex-col gap-4">
-        <input
-          v-model="email"
-          type="email"
-          placeholder="Email"
-          required
-          class="border border-gray-300 rounded p-2 w-full"
-        />
-        <input
-          v-model="password"
-          type="password"
-          placeholder="Password"
-          required
-          class="border border-gray-300 rounded p-2 w-full"
-        />
+        <form @submit.prevent="handleLogin" class="flex flex-col gap-4">
+          <input
+            v-model="email"
+            type="email"
+            placeholder="Email"
+            required
+            class="border border-gray-300 rounded p-2 w-full"
+          />
+          <input
+            v-model="password"
+            type="password"
+            placeholder="Password"
+            required
+            class="border border-gray-300 rounded p-2 w-full"
+          />
 
-        <button
-          type="submit"
-          class="bg-green-600 text-white rounded-2xl p-2 hover:bg-green-700"
-        >
-          Log In
-        </button>
+          <button
+            type="submit"
+            class="bg-green-600 text-white rounded-2xl p-2 hover:bg-green-700"
+          >
+            Log In
+          </button>
 
-        <p v-if="error" class="text-red-500 text-sm mt-2 text-center">{{ error }}</p>
-      </form>
+          <p v-if="error" class="text-red-500 text-sm mt-2 text-center">{{ error }}</p>
+        </form>
 
-      <!-- Create Account Link -->
-      <div class="text-center mt-6">
-        <p class="text-gray-600">
-          Don’t have an account?
-          <NuxtLink to="/signup" class="text-green-700 font-semibold hover:underline">
-            Create Account
-          </NuxtLink>
-        </p>
+        <!-- Create Account Link -->
+        <div class="text-center mt-6">
+          <p class="text-gray-600">
+            Don’t have an account?
+            <NuxtLink to="/signup" class="text-green-700 font-semibold hover:underline">
+              Create Account
+            </NuxtLink>
+          </p>
+        </div>
       </div>
     </div>
-  </div>
+  </Appear>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router' 
+import Appear from '/components/Appear'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'

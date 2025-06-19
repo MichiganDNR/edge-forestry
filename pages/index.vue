@@ -202,11 +202,19 @@ import SectionWrapper from '~/components/SectionWrapper.vue'
 import Service from '~/components/PackagesContainer.vue'
 import emailjs from '@emailjs/browser'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import { storeToRefs } from 'pinia'  
 
 const router = useRouter()
+const userStore = useUserStore()
+const { user } = storeToRefs(userStore) // makes user a ref
 
 const goToPage = () => {
-  router.push('/interactive') // change to your desired route
+  if (!user.value) {
+    router.push('/interactive')
+  } else {
+    router.push('/settings')
+  }
 }
 
 // Constants

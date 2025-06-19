@@ -20,7 +20,7 @@
             <button @click="scrollToSection('faqs')" class="hover:text-green-800">FAQs</button>
             <button @click="scrollToSection('about-us')" class="hover:text-green-800">About Us</button>
             <button @click="scrollToSection('contact-us')" class="hover:text-green-800">Contact</button>
-            <NuxtLink to="/interactive" class="hover:text-green-800">Upload</NuxtLink>
+            <button @click="goToPage" class="hover:text-green-800">Upload</button>
           </div>
         </div>
       </div>
@@ -29,11 +29,51 @@
 </template>
 
 <script setup>
-const scrollToSection = (id) => {
-  const el = document.getElementById(id)
-  if (el) el.scrollIntoView({ behavior: 'smooth' })
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import { storeToRefs } from 'pinia' 
+import { useRoute } from 'vue-router'
+import { computed } from 'vue'
+
+
+const router = useRouter()
+const userStore = useUserStore()
+const { user } = storeToRefs(userStore) // makes user a ref
+const route = useRoute()
+const isHome = computed(() => route.path === '/')
+
+
+const goToPage = () => {
+  if (!user.value) {
+    router.push('/interactive')
+  } else {
+    router.push('/settings')
+  }
 }
 
+const scrollToSection = async (id) => {
+  if (isHome.value) {
+    const el = document.getElementById(id)
+    if (el) {
+      window.scrollTo({
+        top: el.offsetTop - 40,
+        behavior: 'smooth',
+      })
+    }
+  } else {
+    await router.push('/')
+
+    setTimeout(() => {
+      const el = document.getElementById(id)
+      if (el) {
+        window.scrollTo({
+          top: el.offsetTop - 40,
+          behavior: 'smooth',
+        })
+      }
+    }, 300)
+  }
+}
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }

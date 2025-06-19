@@ -62,21 +62,22 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from './MainButton.vue' 
 import { useUserStore } from '@/stores/user'  
+import { storeToRefs } from 'pinia'
 
 const route = useRoute();
 const router = useRouter();
 const isHome = computed(() => route.path === '/');
 const userStore = useUserStore()
-const user = userStore.user
-
+const { user } = storeToRefs(userStore) // makes user a ref
 
 const goToPage = () => {
-  if (!user) {
+  if (!user.value) {
     router.push('/interactive')
   } else {
     router.push('/settings')
   }
 }
+
 
 
 const navItems = [

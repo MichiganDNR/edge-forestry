@@ -72,10 +72,13 @@
       <h2 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
         Results
       </h2>
-      <!-- Save Entry Button -->
+
       <div class="flex justify-center items-center gap-4">
-                <!-- Dropdown 2: Probability -->
-        <div class="relative w-56">
+        <div v-if="results.length === 0" class="text-green-950 font-medium text-center text-xl mt-4">
+          No results to display.
+        </div>  
+        <!-- Dropdown 2: Probability -->
+        <div v-else class="relative w-56">
           <button
             @click="openProbabilityDropdown = !openProbabilityDropdown"
             class="w-full bg-green-900 text-white text-center px-6 py-3 rounded-3xl font-semibold hover:bg-green-700 transition flex items-center justify-between"
@@ -100,13 +103,6 @@
             </button>
           </div>
         </div>
-
-        <button
-          type="button"
-          class="bg-green-900 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-3xl w-56"
-        >
-          Save Entry
-        </button>
       </div>
 
       <div class="flex justify-center grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 flex-wrap gap-2">
@@ -120,7 +116,7 @@
         />
       </div>
 
-      <div class="flex justify-center items-center gap-4 mt-6">
+      <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-6">
         <button
           @click="currentPage--"
           :disabled="currentPage === 1"
@@ -151,6 +147,11 @@ import 'leaflet/dist/leaflet.css'
 import Map from '/components/Map.vue'
 import ResultCard from '~/components/resultCard.vue'
 
+definePageMeta({
+  middleware: ['auth'],
+  requiresAuth: true
+})
+
 const results = ref([])
 
 const openProbabilityDropdown = ref(false)
@@ -170,8 +171,8 @@ const probabilities = [
   'All',
   'No condition',
   'Low probability',
-  'Medium probability',
   'High probability',
+  'Has Condition',
 ]
 
 const diseases = [
@@ -190,12 +191,6 @@ function selectProbabilityDropdown(probability) {
   currentPage.value = 1
 }
 
-function mapProbability(prob) {
-  if (prob < 0.25) return 'No condition'
-  if (prob < 0.5) return 'Low probability'
-  if (prob < 0.75) return 'Medium probability'
-  return 'High probability'
-}
 
 function selectDiseaseDropdown(disease) {
   selectedDiseaseDropdown.value = disease
@@ -215,14 +210,14 @@ function isWithinSelectedProbability(prob) {
   if (!label || label === 'All') return true
 
   switch (label) {
-    case 'No condition':
-      return prob < 0.25
-    case 'Low probability':
-      return prob >= 0.25 && prob < 0.5
-    case 'Medium probability':
-      return prob >= 0.5 && prob < 0.75
-    case 'High probability':
-      return prob >= 0.75
+    case 'No Condition':
+      return prob < 0.70
+    case 'Low Probability':
+      return prob >= 0.70 && prob < 0.90
+    case 'High Probability':
+      return prob >= 0.90 && prob < 0.995
+    case 'Has Condition':
+      return prob >= 0.995
     default:
       return true
   }
@@ -260,186 +255,7 @@ onMounted(() => {
 window.addEventListener('click', handleClick)
 
 results.value = [
-    {
-      fileName: "img1.png",
-      imageUrl: "/uploads/img1.png",
-      probability: 0.92,
-      coordinates: [42.9, -85.6]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.44,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.27,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.58,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    },
-    {
-      fileName: "img2.png",
-      imageUrl: "/uploads/img2.png",
-      probability: 0.12,
-      coordinates: [42.8, -85.5]
-    }
+
   ]
   })
 
@@ -468,9 +284,15 @@ function triggerFileInput() {
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0]
-  if (file) {
-    console.log('Selected file:', file)
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg']
+
+  if (file && allowedTypes.includes(file.type)) {
+    console.log('Accepted image file:', file)
     uploadedFile.value = file
+  } else {
+    console.warn('Rejected file:', file?.name)
+    alert('Only JPEG, JPG, PNG, or GIF files are allowed.')
+    uploadedFile.value = null
   }
 }
 
@@ -482,5 +304,7 @@ watch(selectedDisease, () => {
     showMap.value = true
   }, 0)
 })
+
+
 </script>
 
