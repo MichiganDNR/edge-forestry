@@ -4,7 +4,7 @@ import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
   const user = ref(null)        // Firebase user object
-  const credits = ref(0)        // Credits from your database
+  const credits = ref(0)    
 
   function setUser(newUser) {
     user.value = newUser

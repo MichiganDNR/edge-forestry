@@ -1,4 +1,5 @@
 <template>
+  <Appear>
   <div class="min-h-screen flex items-center justify-center px-4">
     <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
       <h2 class="text-3xl font-medium text-green-950 mb-6 text-center">Payment Processing</h2>
@@ -48,10 +49,12 @@
       </div>
     </div>
   </div>
+  </Appear>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import Appear from '/components/Appear'
 
 const name = ref('')
 const email = ref('')
@@ -62,10 +65,6 @@ const loading = ref(false)
 const success = ref(false)
 const error = ref('')
 
-definePageMeta({
-  middleware: ['auth'],
-  requiresAuth: true
-})
 
 const handleSubmit = async () => {
   loading.value = true

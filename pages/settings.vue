@@ -7,6 +7,12 @@
     <div class="relative w-full flex justify-center px-4">
       <!-- Dropdown and Buttons Layer -->
       <div class="absolute top-0 w-full flex flex-wrap items-center justify-center gap-4 z-[1100] mt-4">
+        <input
+          v-model="entryName"
+          placeholder="Enter Entry Name"
+          class="w-56 px-4 py-2 rounded-3xl border border-gray-300"
+        />
+
         <!-- Upload Button -->
         <div>
           <input
@@ -147,11 +153,6 @@ import 'leaflet/dist/leaflet.css'
 import Map from '/components/Map.vue'
 import ResultCard from '~/components/resultCard.vue'
 
-definePageMeta({
-  middleware: ['auth'],
-  requiresAuth: true
-})
-
 const results = ref([])
 
 const openProbabilityDropdown = ref(false)
@@ -166,6 +167,8 @@ const uploadedFile = ref(null)
 const loading = ref(false)
 const result = ref(null)
 const showMap = ref(true)
+const entryName = ref("")
+
 
 const probabilities = [
   'All',
@@ -242,6 +245,7 @@ async function handleSeeResults() {
     const data = await response.json()
 
     results.value = data.results
+    
     currentPage.value = 1
   } catch (err) {
     console.error('Failed to analyze file:', err)

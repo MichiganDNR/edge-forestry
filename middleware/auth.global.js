@@ -1,10 +1,15 @@
-export default defineNuxtRouteMiddleware((to) => {
-  const { $auth } = useNuxtApp()
+import { useUserStore } from '@/stores/user'
+
+export default defineNuxtRouteMiddleware(async (to) => {
+  const userStore = useUserStore()
 
   if (import.meta.server) return
 
-  // Only protect pages that ask for auth
-  if (to.meta.requiresAuth && !$auth.currentUser) {
+  const publicPages = ['/', '/login', '/signup','404']
+
+  if (publicPages.includes(to.path)) return
+
+  if (!userStore.user) {
     return navigateTo('/login')
   }
 })
