@@ -30,13 +30,13 @@
     <div class="flex flex-col gap-2 mt-2">
       <button
         class="bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm hover:bg-green-200"
-        @click="sendFeedback(true)"
+        @click="$emit('feedback', fileName, 'Unhealthy')"
       >
         Has Condition
       </button>
       <button
         class="bg-red-100 text-red-800 px-4 py-1 rounded-full text-sm hover:bg-red-200"
-        @click="sendFeedback(false)"
+        @click="$emit('feedback', fileName, 'Healthy')"
       >
         No Condition
       </button>
@@ -54,7 +54,9 @@ defineProps({
   selectedDiseaseDropdown: String 
 })
 
-const sendFeedback = async (feedbackType) => {
+</script>
+
+<!--const sendFeedback = async (feedbackType) => {
   try {
     await fetch('/api/feedback', {
       method: 'POST',
@@ -72,5 +74,4 @@ const sendFeedback = async (feedbackType) => {
     console.error('Feedback failed:', err)
     alert('Failed to send feedback.')
   }
-}
-</script>
+} -->

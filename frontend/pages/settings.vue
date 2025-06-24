@@ -1,0 +1,269 @@
+<template>
+  <Appear>
+    <h1 class="text-center text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
+      Choose a Specification
+    </h1>
+
+    <div class="relative w-full flex justify-center px-4">
+      <div class="absolute top-0 w-full flex flex-wrap items-center justify-center gap-4 z-[1100] mt-4">
+        <input v-model="entryName" placeholder="Enter Entry Name" class="w-56 px-4 py-2 rounded-3xl border border-gray-300" />
+        <div>
+          <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="handleFileUpload" />
+          <button type="button" class="bg-green-900 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-3xl w-56" @click="triggerFileInput">
+            Upload Photos
+          </button>
+        </div>
+        <div class="relative w-56">
+          <button @click="openDiseaseDropdown = !openDiseaseDropdown" class="w-full bg-green-900 text-white text-center px-6 py-3 rounded-3xl font-semibold hover:bg-green-700 transition flex items-center justify-between">
+            {{ selectedDiseaseLabel }}
+            <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div v-if="openDiseaseDropdown" class="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-3xl shadow-lg z-10">
+            <button v-for="disease in diseases" :key="disease" @click="selectDiseaseDropdown(disease)" class="block w-full text-left px-6 py-3 rounded-3xl hover:bg-gray-200" :class="{ 'bg-green-900 text-white': selectedDiseaseDropdown === disease }">
+              {{ disease }}
+            </button>
+          </div>
+        </div>
+        <button type="button" class="bg-green-900 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-3xl w-56" @click="handleSeeResults">
+          See Results
+        </button>
+      </div>
+
+      <ClientOnly>
+        <div class="w-full md:w-11/12 lg:w-4/5 2xl:w-1/2 pt-25">
+          <Map v-if="showMap" />
+        </div>
+      </ClientOnly>
+    </div>
+
+    <div>
+      <h2 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
+        Results
+      </h2>
+
+      <div v-if="results.length === 0" class="text-green-950 font-medium text-center text-xl mt-4">
+        No results to display.
+      </div>
+
+      <div v-else class="flex justify-center items-start gap-6">
+        <div class="flex flex-col gap-2">
+          <a :href="csvLink" class="underline text-green-800 font-semibold" download>Download CSV</a>
+          <a :href="geojsonLink" class="underline text-green-800 font-semibold" download>Download GeoJSON</a>
+        </div>
+
+        <div class="relative w-56">
+          <button @click="openProbabilityDropdown = !openProbabilityDropdown" class="w-full bg-green-900 text-white text-center px-6 py-3 rounded-3xl font-semibold hover:bg-green-700 transition flex items-center justify-between">
+            {{ selectedProbabilityLabel }}
+            <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div v-if="openProbabilityDropdown" class="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-3xl shadow-lg z-10">
+            <button v-for="probability in probabilities" :key="probability" @click="selectProbabilityDropdown(probability)" class="block w-full text-left px-6 py-3 rounded-3xl hover:bg-gray-200" :class="{ 'bg-green-900 text-white': selectedProbabilityDropdown === probability }">
+              {{ probability }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-center flex-wrap gap-4 mt-6">
+        <ResultCard
+          v-for="(result, index) in paginatedResults"
+          :key="index"
+          :fileName="result.fileName"
+          :imageUrl="result.imageUrl"
+          :probability="result.probability"
+          :coordinates="result.coordinates"
+          @feedback="handleFeedback"
+        />
+      </div>
+
+      <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-6">
+        <button @click="currentPage--" :disabled="currentPage === 1" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50">Prev</button>
+        <span class="text-sm">Page {{ currentPage }} of {{ totalPages }}</span>
+        <button @click="currentPage++" :disabled="currentPage === totalPages" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50">Next</button>
+      </div>
+    </div>
+  </Appear>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import Appear from '~/components/Appear.vue'
+import 'leaflet/dist/leaflet.css'
+import Map from '/components/Map.vue'
+import ResultCard from '~/components/resultCard.vue'
+import axios from 'axios'
+
+const fileInput = ref(null)
+const uploadedFiles = ref(null)
+const entryName = ref("")
+const loading = ref(false)
+const results = ref([])
+const showMap = ref(true)
+const currentPage = ref(1)
+const itemsPerPage = 28
+const apiURL = 'https://your-api.com'
+const csvLink= ref(`${apiURL}/results.csv`)
+const geojsonLink = ref(`${apiURL}/results.geojson`)
+
+const openProbabilityDropdown = ref(false)
+const selectedProbabilityDropdown = ref(null)
+const openDiseaseDropdown = ref(false)
+const selectedDiseaseDropdown = ref(null)
+const selectedDisease = ref(null)
+
+const probabilities = ['All','No Condition','Low Probability','High Probability','Has Condition']
+const diseases = ['Oak Wilt','Hemlock Woolly Adelgid','Beech Bark Disease','Beech Leaf Disease']
+
+const selectedProbabilityLabel = computed(() => selectedProbabilityDropdown.value || 'Choose Probability')
+const selectedDiseaseLabel = computed(() => selectedDiseaseDropdown.value || 'Choose Disease')
+
+const totalPages = computed(() => Math.ceil(results.value.length / itemsPerPage))
+
+const paginatedResults = computed(() => {
+  const filtered = results.value.filter(result => isWithinSelectedProbability(result.probability))
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filtered.slice(start, end)
+})
+
+watch(selectedDisease, () => {
+  if (fileInput.value) fileInput.value.value = ''
+  selectedProbabilityDropdown.value = null
+  showMap.value = false
+  setTimeout(() => { showMap.value = true }, 0)
+})
+
+onMounted(() => {
+  window.addEventListener('click', handleClick)
+
+  results.value = [
+    {
+      fileName: 'tree_1.jpg',
+      imageUrl:  `${apiURL}/images/tree_1.jpg`,
+      probability: 0.9931,
+      classification: 'Oak Wilt',
+      coordinates: [42.3314, -83.0458],
+    },
+    {
+      fileName: 'tree_2.jpg',
+      imageUrl:  `${apiURL}/images/tree_1.jpg`,
+      probability: 0.8567,
+      classification: 'Oak Wilt',
+      coordinates: [42.2808, -83.7430],
+    },
+    {
+      fileName: 'tree_3.jpg',
+      imageUrl:  `${apiURL}/images/tree_1.jpg`,
+      probability: 0.6734,
+      classification: 'Oak Wilt',
+      coordinates: [43.6150, -84.2472],
+    },
+    {
+      fileName: 'tree_4.jpg',
+      imageUrl:  `${apiURL}/images/tree_1.jpg`,
+      probability: 0.9978,
+      classification: 'Oak Wilt',
+      coordinates: [44.3148, -85.6024],
+    }
+  ]
+})
+
+
+onBeforeUnmount(() => window.removeEventListener('click', handleClick))
+
+function handleClick(e) {
+  if (!e.target.closest('.relative')) {
+    openProbabilityDropdown.value = false
+    openDiseaseDropdown.value = false
+  }
+}
+
+function triggerFileInput() {
+  fileInput.value?.click()
+}
+
+function handleFileUpload(event) {
+  uploadedFiles.value = Array.from(event.target.files)
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg']
+  const files = Array.from(event.target.files)
+  const validFiles = files.filter(file => allowedTypes.includes(file.type))
+  if (validFiles.length === 0) {
+    alert('Only JPEG, JPG, PNG, or GIF files are allowed.')
+    uploadedFiles.value = []
+  } else {
+    uploadedFiles.value = validFiles
+  }
+}
+
+function selectProbabilityDropdown(probability) {
+  selectedProbabilityDropdown.value = probability
+  openProbabilityDropdown.value = false
+  currentPage.value = 1
+}
+
+function selectDiseaseDropdown(disease) {
+  selectedDiseaseDropdown.value = disease
+  openDiseaseDropdown.value = false
+}
+
+function isWithinSelectedProbability(prob) {
+  const label = selectedProbabilityDropdown.value
+  if (!label || label === 'All') return true
+  switch (label) {
+    case 'No Condition': return prob < 0.70
+    case 'Low Probability': return prob >= 0.70 && prob < 0.90
+    case 'High Probability': return prob >= 0.90 && prob < 0.995
+    case 'Has Condition': return prob >= 0.995
+    default: return true
+  }
+}
+
+
+async function handleSeeResults() {
+  if (!uploadedFiles.value || !selectedDiseaseDropdown.value) {
+    alert('Please upload a file and select a disease type.')
+    return
+  }
+
+  const formData = new FormData()
+  uploadedFiles.value.forEach(file => {
+    formData.append('file', file)
+  })
+  formData.append('disease', selectedDiseaseDropdown.value)
+
+  loading.value = true
+  try {
+    const response = await axios.post(`${apiURL}/upload-images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+
+    results.value = response.data.results
+    csvLink.value = `${apiURL}/results.csv`
+    geojsonLink.value = `${apiURL}/results.geojson`
+    currentPage.value = 1
+  } catch (err) {
+    console.error('Failed to analyze file:', err)
+    alert('Error processing your file. Please try again.')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleFeedback(fileName, feedbackType) {
+  try {
+    await axios.post(`${apiURL}/submit-feedback`, {
+      fileName,
+      feedback: feedbackType
+    })
+    alert('Feedback submitted successfully!')
+  } catch (err) {
+    console.error('Error submitting feedback:', err)
+    alert('Failed to send feedback.')
+  }
+}
+
+</script>
