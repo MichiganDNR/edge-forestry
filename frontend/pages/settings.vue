@@ -29,11 +29,13 @@
         <button type="button" class="bg-green-900 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-3xl w-56" @click="handleSeeResults">
           See Results
         </button>
+        <button @click="loadMockResults" class="bg-blue-600 text-white p-3 rounded">Load Mock Results</button>
+
       </div>
 
       <ClientOnly>
         <div class="w-full md:w-11/12 lg:w-4/5 2xl:w-1/2 pt-25">
-          <Map v-if="showMap" />
+          <Map v-if="showMap" :geojson-url="geojsonLink"/>
         </div>
       </ClientOnly>
     </div>
@@ -91,14 +93,28 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useNuxtApp } from '#app'
 import Appear from '~/components/Appear.vue'
 import 'leaflet/dist/leaflet.css'
 import Map from '/components/Map.vue'
 import ResultCard from '~/components/resultCard.vue'
 import axios from 'axios'
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
+const user = userStore.user  // reactive user object
+
+if (user) {
+  const uid = user.uid
+  // use uid in Firestore paths or Storage uploads
+}
+
+// Grab Nuxt app context to get db instance
+const nuxtApp = useNuxtApp()
+const db = nuxtApp.$db
 
 const fileInput = ref(null)
 const uploadedFiles = ref(null)
@@ -111,7 +127,8 @@ const currentPage = ref(1)
 const itemsPerPage = 28
 const apiURL = 'http://localhost:5001'
 const csvLink= ref(`${apiURL}/results.csv`)
-const geojsonLink = ref(`${apiURL}/results.geojson`)
+const geojsonLink = ref(`${apiURL}/mock-results.geojson`)
+
 
 const openProbabilityDropdown = ref(false)
 const selectedProbabilityDropdown = ref(null)
@@ -134,6 +151,32 @@ const paginatedResults = computed(() => {
   return filtered.slice(start, end)
 })
 
+function loadMockResults() {
+  results.value = [
+    {
+      fileName: 'mock_leaf_01.jpg',
+      imageUrl: `${apiURL}/images/mock_leaf_01.jpg`,
+      probability: 0.998,
+      coordinates: [37.7749, -122.4194]
+    },
+    {
+      fileName: 'mock_leaf_02.jpg',
+      imageUrl: `${apiURL}/images/mock_leaf_02.jpg`,
+      probability: 0.912,
+      coordinates: [37.7739, -122.4313]
+    },
+    {
+      fileName: 'mock_leaf_03.jpg',
+      imageUrl: `${apiURL}/images/mock_leaf_03.jpg`,
+      probability: 0.725,
+      coordinates: [37.768, -122.4478]
+    }
+  ]
+  geojsonLink.value = `${apiURL}/mock-results.geojson`
+  currentPage.value = 1
+}
+
+
 watch(selectedDisease, () => {
   if (fileInput.value) fileInput.value.value = ''
   selectedProbabilityDropdown.value = null
@@ -143,12 +186,8 @@ watch(selectedDisease, () => {
 
 onMounted(() => {
   window.addEventListener('click', handleClick)
-
-  results.value = [
-  
-  ]
+  results.value = []
 })
-
 
 onBeforeUnmount(() => window.removeEventListener('click', handleClick))
 
@@ -199,44 +238,28 @@ function isWithinSelectedProbability(prob) {
   }
 }
 
-
 async function handleSeeResults() {
-  if (!uploadedFiles.value || !selectedDiseaseDropdown.value || !entryName.value) {
-    alert('Please upload a file, select a disease type, and enter an entry name.')
+  if (!entryName.value || !selectedDiseaseDropdown.value) {
+    alert('Please enter an entry name and select a disease type.')
     return
   }
 
-  const formData = new FormData()
-  uploadedFiles.value.forEach(file => {
-    formData.append('file', file)
-  })
-  formData.append('disease', selectedDiseaseDropdown.value)
-
   loading.value = true
   try {
-    const response = await axios.post(`${apiURL}/upload-images`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+    const user = getAuth().currentUser
+    if (!user) throw new Error('User not logged in')
+
+    await addDoc(collection(db, 'users', user.uid, 'uploads'), {
+      entryName: entryName.value,
+      disease: selectedDiseaseDropdown.value,
+      timestamp: serverTimestamp()
     })
 
-    // Process results for display
-    results.value = Object.values(response.data.results).flat().map(result => ({
-      ...result,
-      imageUrl: `${apiURL}/images/${result.filename}`,
-      coordinates: [result.latitude, result.longitude],
-      fileName: result.filename,
-      probability: parseFloat(result.prediction) / 100,
-    }))
-
-    csvLink.value = `${apiURL}/results.csv`
-    geojsonLink.value = `${apiURL}/results.geojson`
-    currentPage.value = 1
-
-    // Save the upload data to Firebase
-    await uploadFiles(uploadedFiles.value, entryName.value, selectedDiseaseDropdown.value, results.value)
+    alert('✅ Entry saved successfully!')
 
   } catch (err) {
-    console.error('Failed to analyze file:', err)
-    alert('Error processing your file. Please try again.')
+    console.error('❌ Error saving entry:', err)
+    alert('Error saving your entry. Make sure you’re signed in.')
   } finally {
     loading.value = false
   }
@@ -262,7 +285,6 @@ async function uploadFiles(uploadedFiles, entryName, disease, backendResults) {
     const user = getAuth().currentUser
     if (!user) throw new Error('User not logged in')
 
-    // Upload files, get URLs
     const storage = getStorage()
     const fileUrls = await Promise.all(
       uploadedFiles.map(async (file) => {
@@ -272,8 +294,6 @@ async function uploadFiles(uploadedFiles, entryName, disease, backendResults) {
       })
     )
 
-    // Save metadata in Firestore
-    const db = getFirestore()
     const docRef = await addDoc(collection(db, 'users', user.uid, 'uploads'), {
       entryName,
       disease,
@@ -284,7 +304,6 @@ async function uploadFiles(uploadedFiles, entryName, disease, backendResults) {
       }))
     })
 
-    // Update local state
     uploads.value.unshift({
       id: docRef.id,
       entryName,
@@ -300,4 +319,65 @@ async function uploadFiles(uploadedFiles, entryName, disease, backendResults) {
   }
 }
 
+async function saveResultToFirestore(result) {
+  try {
+    await addDoc(collection(db, 'feedback'), result)
+    console.log("Document saved!")
+  } catch (err) {
+    console.error("Error saving to Firestore:", err)
+  }
+}
+
+// Just example usage - remove or comment out in production
+saveResultToFirestore({
+  filename: 'oak_leaf_01.jpg',
+  isCorrect: true
+})
+
+await addDoc(collection(db, 'testUploads'), {
+  testField: 'testValue',
+  timestamp: serverTimestamp()
+})
+
 </script>
+
+<!--real HSR-->
+<!--async function handleSeeResults() {
+  if (!uploadedFiles.value || !selectedDiseaseDropdown.value || !entryName.value) {
+    alert('Please upload a file, select a disease type, and enter an entry name.')
+    return
+  }
+
+  const formData = new FormData()
+  uploadedFiles.value.forEach(file => {
+    formData.append('file', file)
+  })
+  formData.append('disease', selectedDiseaseDropdown.value)
+
+  loading.value = true
+  try {
+    const response = await axios.post(`${apiURL}/upload-images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+
+    results.value = Object.values(response.data.results).flat().map(result => ({
+      ...result,
+      imageUrl: `${apiURL}/images/${result.filename}`,
+      coordinates: [result.latitude, result.longitude],
+      fileName: result.filename,
+      probability: parseFloat(result.prediction) / 100,
+    }))
+
+    csvLink.value = `${apiURL}/results.csv`
+    geojsonLink.value = `${apiURL}/results.geojson`
+    currentPage.value = 1
+
+    await uploadFiles(uploadedFiles.value, entryName.value, selectedDiseaseDropdown.value, results.value)
+
+  } catch (err) {
+    console.error('Failed to analyze file:', err)
+    alert('Error processing your file. Please try again.')
+  } finally {
+    loading.value = false
+  }
+}-->

@@ -56,6 +56,60 @@ model = tf.keras.models.load_model(MODEL_PATH)
 def greetings():
     return "Hello, world!"
 
+@app.route('/mock-results.geojson', methods=['GET'])
+def mock_geojson():
+    # Mock GeoJSON features
+    mock_features = [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-122.4194, 37.7749]
+            },
+            "properties": {
+                "filename": "mock_leaf_01.jpg",
+                "prediction": "99.8%",
+                "classification": "THIS PICTURE HAS OAK WILT",
+                "latitude": 37.7749,
+                "longitude": -122.4194
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-122.4313, 37.7739]
+            },
+            "properties": {
+                "filename": "mock_leaf_02.jpg",
+                "prediction": "91.2%",
+                "classification": "THERE'S A HIGH CHANCE OF OAK WILTS",
+                "latitude": 37.7739,
+                "longitude": -122.4313
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-122.4478, 37.768]
+            },
+            "properties": {
+                "filename": "mock_leaf_03.jpg",
+                "prediction": "72.5%",
+                "classification": "CHANGES OF COLORS ON TREE LEAVES",
+                "latitude": 37.768,
+                "longitude": -122.4478
+            }
+        }
+    ]
+
+    return jsonify({
+        "type": "FeatureCollection",
+        "features": mock_features
+    })
+
+
 @app.route("/upload-images", methods=['POST'])
 def upload_images():
     results = {
@@ -210,14 +264,12 @@ def download_results_geojson():
         logging.error(f"Error sending results.geojson: {e}")
         return jsonify({"message": "Error sending results.geojson"}), 500
 
-def predict_img(img):
-    img_resized = cv2.resize(img, (256, 256))  # Assuming your model expects 256x256 images
-    img_normalized = img_resized / 255.0
-    img_expanded = np.expand_dims(img_normalized, axis=0)
+import random
 
-    prediction = model.predict(img_expanded)
-    
-    return prediction[0][0]
+def predict_img(img):
+    # Mock: randomly generate a prediction score for testing
+    return random.uniform(0, 1)
+
 
 def get_gps_data(image_path):
     with Image.open(image_path) as img:
@@ -299,4 +351,4 @@ def preprocess_image(img):
 if __name__ == "__main__":
     host = os.getenv('FLASK_RUN_HOST', '0.0.0.0')
     port = int(os.getenv('FLASK_RUN_PORT', 5001))
-    app.run(host=host, port=5000, debug=True)
+    app.run(host=host, port=5001, debug=True)
