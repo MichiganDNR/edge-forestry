@@ -96,16 +96,20 @@ import 'leaflet/dist/leaflet.css'
 import Map from '/components/Map.vue'
 import ResultCard from '~/components/resultCard.vue'
 import axios from 'axios'
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { getAuth } from 'firebase/auth'
 
 const fileInput = ref(null)
 const uploadedFiles = ref(null)
+const uploads = ref([])
 const entryName = ref("")
 const loading = ref(false)
 const results = ref([])
 const showMap = ref(true)
 const currentPage = ref(1)
 const itemsPerPage = 28
-const apiURL = 'https://your-api.com'
+const apiURL = 'http://localhost:5001'
 const csvLink= ref(`${apiURL}/results.csv`)
 const geojsonLink = ref(`${apiURL}/results.geojson`)
 
@@ -141,34 +145,7 @@ onMounted(() => {
   window.addEventListener('click', handleClick)
 
   results.value = [
-    {
-      fileName: 'tree_1.jpg',
-      imageUrl:  `${apiURL}/images/tree_1.jpg`,
-      probability: 0.9931,
-      classification: 'Oak Wilt',
-      coordinates: [42.3314, -83.0458],
-    },
-    {
-      fileName: 'tree_2.jpg',
-      imageUrl:  `${apiURL}/images/tree_1.jpg`,
-      probability: 0.8567,
-      classification: 'Oak Wilt',
-      coordinates: [42.2808, -83.7430],
-    },
-    {
-      fileName: 'tree_3.jpg',
-      imageUrl:  `${apiURL}/images/tree_1.jpg`,
-      probability: 0.6734,
-      classification: 'Oak Wilt',
-      coordinates: [43.6150, -84.2472],
-    },
-    {
-      fileName: 'tree_4.jpg',
-      imageUrl:  `${apiURL}/images/tree_1.jpg`,
-      probability: 0.9978,
-      classification: 'Oak Wilt',
-      coordinates: [44.3148, -85.6024],
-    }
+  
   ]
 })
 
@@ -224,8 +201,8 @@ function isWithinSelectedProbability(prob) {
 
 
 async function handleSeeResults() {
-  if (!uploadedFiles.value || !selectedDiseaseDropdown.value) {
-    alert('Please upload a file and select a disease type.')
+  if (!uploadedFiles.value || !selectedDiseaseDropdown.value || !entryName.value) {
+    alert('Please upload a file, select a disease type, and enter an entry name.')
     return
   }
 
@@ -241,10 +218,22 @@ async function handleSeeResults() {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
 
-    results.value = response.data.results
+    // Process results for display
+    results.value = Object.values(response.data.results).flat().map(result => ({
+      ...result,
+      imageUrl: `${apiURL}/images/${result.filename}`,
+      coordinates: [result.latitude, result.longitude],
+      fileName: result.filename,
+      probability: parseFloat(result.prediction) / 100,
+    }))
+
     csvLink.value = `${apiURL}/results.csv`
     geojsonLink.value = `${apiURL}/results.geojson`
     currentPage.value = 1
+
+    // Save the upload data to Firebase
+    await uploadFiles(uploadedFiles.value, entryName.value, selectedDiseaseDropdown.value, results.value)
+
   } catch (err) {
     console.error('Failed to analyze file:', err)
     alert('Error processing your file. Please try again.')
@@ -253,16 +242,61 @@ async function handleSeeResults() {
   }
 }
 
+
 async function handleFeedback(fileName, feedbackType) {
   try {
     await axios.post(`${apiURL}/submit-feedback`, {
       fileName,
-      feedback: feedbackType
+      isCorrect: feedbackType == 'correct'
     })
     alert('Feedback submitted successfully!')
   } catch (err) {
     console.error('Error submitting feedback:', err)
     alert('Failed to send feedback.')
+  }
+}
+
+async function uploadFiles(uploadedFiles, entryName, disease, backendResults) {
+  loading.value = true
+  try {
+    const user = getAuth().currentUser
+    if (!user) throw new Error('User not logged in')
+
+    // Upload files, get URLs
+    const storage = getStorage()
+    const fileUrls = await Promise.all(
+      uploadedFiles.map(async (file) => {
+        const fileRef = storageRef(storage, `uploads/${user.uid}/${Date.now()}_${file.name}`)
+        await uploadBytes(fileRef, file)
+        return await getDownloadURL(fileRef)
+      })
+    )
+
+    // Save metadata in Firestore
+    const db = getFirestore()
+    const docRef = await addDoc(collection(db, 'users', user.uid, 'uploads'), {
+      entryName,
+      disease,
+      timestamp: serverTimestamp(),
+      predictions: backendResults.map((res, i) => ({
+        ...res,
+        imageUrl: fileUrls[i]
+      }))
+    })
+
+    // Update local state
+    uploads.value.unshift({
+      id: docRef.id,
+      entryName,
+      disease,
+      timestamp: new Date(),
+      predictions: backendResults
+    })
+
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
   }
 }
 

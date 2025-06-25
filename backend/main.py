@@ -298,5 +298,5 @@ def preprocess_image(img):
 
 if __name__ == "__main__":
     host = os.getenv('FLASK_RUN_HOST', '0.0.0.0')
-    port = int(os.getenv('FLASK_RUN_PORT', 5000))
-    app.run(host=host, port=port, debug=True)
+    port = int(os.getenv('FLASK_RUN_PORT', 5001))
+    app.run(host=host, port=5000, debug=True)
