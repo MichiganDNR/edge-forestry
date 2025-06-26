@@ -5,7 +5,6 @@
 <script setup>
 import { onMounted, ref, onBeforeUnmount, watch } from 'vue'
 
-// Props: Accepts a GeoJSON URL from the parent
 const props = defineProps({
   geojsonUrl: {
     type: String,
@@ -17,9 +16,25 @@ let map = null
 let L = null
 let geojsonLayer = null
 
+// Function to choose an icon based on probability
+function getIcon(probability) {
+  let iconFile = 'green.png'
+
+  const numProb = parseFloat(probability?.replace('%', '')) || 0
+
+  if (numProb >= 99.5) iconFile = 'red.png'
+  else if (numProb >= 90) iconFile = 'orange.png'
+
+  return L.icon({
+    iconUrl: `/images/${iconFile}`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  })
+}
+
 onMounted(async () => {
   if (import.meta.client) {
-    // Dynamically import Leaflet (for SSR safety)
     L = (await import('leaflet')).default
 
     map = L.map('map').setView([37.7749, -122.4194], 10)
@@ -28,10 +43,6 @@ onMounted(async () => {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map)
 
-    // Optionally add a sample marker (remove if not needed)
-    // L.marker([37.7749, -122.4194]).addTo(map).bindPopup('Sample Tree').openPopup()
-
-    // Load GeoJSON initially if URL exists
     if (props.geojsonUrl) {
       await loadGeoJSON(props.geojsonUrl)
     }
@@ -45,7 +56,6 @@ onBeforeUnmount(() => {
   }
 })
 
-// Watch for GeoJSON URL changes (reactive updates)
 watch(() => props.geojsonUrl, (newUrl) => {
   if (newUrl) {
     loadGeoJSON(newUrl)
@@ -57,21 +67,14 @@ async function loadGeoJSON(url) {
     const res = await fetch(url)
     const data = await res.json()
 
-    // Remove old layer if needed
     if (geojsonLayer) {
       geojsonLayer.remove()
     }
 
     geojsonLayer = L.geoJSON(data, {
       pointToLayer: (feature, latlng) => {
-        return L.circleMarker(latlng, {
-          radius: 6,
-          fillColor: '#2f855a',
-          color: '#2f855a',
-          weight: 1,
-          opacity: 1,
-          fillOpacity: 0.85
-        })
+        const icon = getIcon(feature.properties?.prediction)
+        return L.marker(latlng, { icon })
       },
       onEachFeature: (feature, layer) => {
         const props = feature.properties || {}
@@ -83,14 +86,13 @@ async function loadGeoJSON(url) {
       }
     }).addTo(map)
 
-    // Zoom to data
     map.fitBounds(geojsonLayer.getBounds())
-
   } catch (error) {
     console.error('Error loading GeoJSON:', error)
   }
 }
 </script>
+
 
 <style scoped>
 .map-container {

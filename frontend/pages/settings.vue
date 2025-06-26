@@ -29,8 +29,6 @@
         <button type="button" class="bg-green-900 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-3xl w-56" @click="handleSeeResults">
           See Results
         </button>
-        <button @click="loadMockResults" class="bg-blue-600 text-white p-3 rounded">Load Mock Results</button>
-
       </div>
 
       <ClientOnly>
@@ -51,8 +49,8 @@
 
       <div v-else class="flex justify-center items-start gap-6">
         <div class="flex flex-col gap-2">
-          <a :href="csvLink" class="underline text-green-800 font-semibold" download>Download CSV</a>
-          <a :href="geojsonLink" class="underline text-green-800 font-semibold" download>Download GeoJSON</a>
+          <a v-if="cvs-link" :href="csvLink" class="underline text-green-800 font-semibold" download>Download CSV</a>
+          <a v-if="geojsonLink" :href="geojsonLink" class="underline text-green-800 font-semibold" download>Download GeoJSON</a>
         </div>
 
         <div class="relative w-56">
@@ -126,8 +124,8 @@ const showMap = ref(true)
 const currentPage = ref(1)
 const itemsPerPage = 28
 const apiURL = 'http://localhost:5001'
-const csvLink= ref(`${apiURL}/results.csv`)
-const geojsonLink = ref(`${apiURL}/mock-results.geojson`)
+const csvLink= ref(null)
+const geojsonLink = ref(null)
 
 
 const openProbabilityDropdown = ref(false)
@@ -150,32 +148,6 @@ const paginatedResults = computed(() => {
   const end = start + itemsPerPage
   return filtered.slice(start, end)
 })
-
-function loadMockResults() {
-  results.value = [
-    {
-      fileName: 'mock_leaf_01.jpg',
-      imageUrl: `${apiURL}/images/mock_leaf_01.jpg`,
-      probability: 0.998,
-      coordinates: [37.7749, -122.4194]
-    },
-    {
-      fileName: 'mock_leaf_02.jpg',
-      imageUrl: `${apiURL}/images/mock_leaf_02.jpg`,
-      probability: 0.912,
-      coordinates: [37.7739, -122.4313]
-    },
-    {
-      fileName: 'mock_leaf_03.jpg',
-      imageUrl: `${apiURL}/images/mock_leaf_03.jpg`,
-      probability: 0.725,
-      coordinates: [37.768, -122.4478]
-    }
-  ]
-  geojsonLink.value = `${apiURL}/mock-results.geojson`
-  currentPage.value = 1
-}
-
 
 watch(selectedDisease, () => {
   if (fileInput.value) fileInput.value.value = ''
@@ -239,32 +211,56 @@ function isWithinSelectedProbability(prob) {
 }
 
 async function handleSeeResults() {
-  if (!entryName.value || !selectedDiseaseDropdown.value) {
-    alert('Please enter an entry name and select a disease type.')
+  if (uploadedFiles.value == 0|| !selectedDiseaseDropdown.value || !entryName.value) {
+    alert('Please upload a file, select a disease type, and enter an entry name.')
     return
   }
 
+  const confirmed = confirm('Are you sure you want to analyze and view results for this entry?')
+  if (!confirmed) return
+
+  const formData = new FormData()
+  uploadedFiles.value.forEach(file => {
+    formData.append('file', file)
+  })
+  formData.append('disease', selectedDiseaseDropdown.value)
+
   loading.value = true
   try {
-    const user = getAuth().currentUser
-    if (!user) throw new Error('User not logged in')
-
-    await addDoc(collection(db, 'users', user.uid, 'uploads'), {
-      entryName: entryName.value,
-      disease: selectedDiseaseDropdown.value,
-      timestamp: serverTimestamp()
+    // Upload to backend and get predictions
+    const response = await axios.post(`${apiURL}/upload-images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
     })
 
-    alert('✅ Entry saved successfully!')
+    // Process backend results
+    results.value = Object.values(response.data.results).flat().map(result => ({
+      ...result,
+      imageUrl: `${apiURL}/images/${result.filename}`,
+      coordinates: [result.latitude, result.longitude],
+      fileName: result.filename,
+      probability: parseFloat(result.prediction) / 100,
+    }))
+
+    csvLink.value = `${apiURL}/results.csv`
+    geojsonLink.value = `${apiURL}/results.geojson`
+    currentPage.value = 1
+
+    // Upload metadata and image URLs to Firestore
+    await uploadFiles(uploadedFiles.value, entryName.value, selectedDiseaseDropdown.value, results.value)
+
+    alert('Entry saved successfully!')
+    showMap.value = false
+    setTimeout(() => {
+      showMap.value = true
+    }, 0)
 
   } catch (err) {
-    console.error('❌ Error saving entry:', err)
-    alert('Error saving your entry. Make sure you’re signed in.')
+    console.error('Error during analysis:', err)
+    alert('Error processing your file or saving the entry. Make sure you’re signed in and try again.')
   } finally {
     loading.value = false
   }
 }
-
 
 async function handleFeedback(fileName, feedbackType) {
   try {
@@ -298,6 +294,8 @@ async function uploadFiles(uploadedFiles, entryName, disease, backendResults) {
       entryName,
       disease,
       timestamp: serverTimestamp(),
+      csvLink: csvLink.value,
+      geojsonLink: geojsonLink.value,
       predictions: backendResults.map((res, i) => ({
         ...res,
         imageUrl: fileUrls[i]
@@ -319,65 +317,4 @@ async function uploadFiles(uploadedFiles, entryName, disease, backendResults) {
   }
 }
 
-async function saveResultToFirestore(result) {
-  try {
-    await addDoc(collection(db, 'feedback'), result)
-    console.log("Document saved!")
-  } catch (err) {
-    console.error("Error saving to Firestore:", err)
-  }
-}
-
-// Just example usage - remove or comment out in production
-saveResultToFirestore({
-  filename: 'oak_leaf_01.jpg',
-  isCorrect: true
-})
-
-await addDoc(collection(db, 'testUploads'), {
-  testField: 'testValue',
-  timestamp: serverTimestamp()
-})
-
 </script>
-
-<!--real HSR-->
-<!--async function handleSeeResults() {
-  if (!uploadedFiles.value || !selectedDiseaseDropdown.value || !entryName.value) {
-    alert('Please upload a file, select a disease type, and enter an entry name.')
-    return
-  }
-
-  const formData = new FormData()
-  uploadedFiles.value.forEach(file => {
-    formData.append('file', file)
-  })
-  formData.append('disease', selectedDiseaseDropdown.value)
-
-  loading.value = true
-  try {
-    const response = await axios.post(`${apiURL}/upload-images`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-
-    results.value = Object.values(response.data.results).flat().map(result => ({
-      ...result,
-      imageUrl: `${apiURL}/images/${result.filename}`,
-      coordinates: [result.latitude, result.longitude],
-      fileName: result.filename,
-      probability: parseFloat(result.prediction) / 100,
-    }))
-
-    csvLink.value = `${apiURL}/results.csv`
-    geojsonLink.value = `${apiURL}/results.geojson`
-    currentPage.value = 1
-
-    await uploadFiles(uploadedFiles.value, entryName.value, selectedDiseaseDropdown.value, results.value)
-
-  } catch (err) {
-    console.error('Failed to analyze file:', err)
-    alert('Error processing your file. Please try again.')
-  } finally {
-    loading.value = false
-  }
-}-->

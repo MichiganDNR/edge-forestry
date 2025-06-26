@@ -56,67 +56,14 @@ model = tf.keras.models.load_model(MODEL_PATH)
 def greetings():
     return "Hello, world!"
 
-@app.route('/mock-results.geojson', methods=['GET'])
-def mock_geojson():
-    # Mock GeoJSON features
-    mock_features = [
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-122.4194, 37.7749]
-            },
-            "properties": {
-                "filename": "mock_leaf_01.jpg",
-                "prediction": "99.8%",
-                "classification": "THIS PICTURE HAS OAK WILT",
-                "latitude": 37.7749,
-                "longitude": -122.4194
-            }
-        },
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-122.4313, 37.7739]
-            },
-            "properties": {
-                "filename": "mock_leaf_02.jpg",
-                "prediction": "91.2%",
-                "classification": "THERE'S A HIGH CHANCE OF OAK WILTS",
-                "latitude": 37.7739,
-                "longitude": -122.4313
-            }
-        },
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-122.4478, 37.768]
-            },
-            "properties": {
-                "filename": "mock_leaf_03.jpg",
-                "prediction": "72.5%",
-                "classification": "CHANGES OF COLORS ON TREE LEAVES",
-                "latitude": 37.768,
-                "longitude": -122.4478
-            }
-        }
-    ]
-
-    return jsonify({
-        "type": "FeatureCollection",
-        "features": mock_features
-    })
-
-
 @app.route("/upload-images", methods=['POST'])
 def upload_images():
+    disease = request.form.get('disease') 
     results = {
-        "THIS PICTURE HAS OAK WILT": [],
-        "THERE'S A HIGH CHANCE OF OAK WILTS": [],
-        "CHANGES OF COLORS ON TREE LEAVES": [],
-        "Not an Oak Wilt": []
+        f"THIS PICTURE HAS {disease}": [],
+        f"THERE'S A HIGH CHANCE OF {disease}": [],
+        f"POSSIBILITY OF {disease}": [],
+        f"DOES NOT HAVE {disease}": []
     }
     uploaded_files = request.files.getlist('file')
 
@@ -139,13 +86,13 @@ def upload_images():
 
                 # Categorize based on the prediction value
                 if prediction > 99.5:
-                    category = "THIS PICTURE HAS OAK WILT"
+                    category = f"THIS PICTURE HAS {disease}"
                 elif 90 < prediction <= 99.5:
-                    category = "THERE'S A HIGH CHANCE OF OAK WILTS"
+                    category = f"THERE'S A HIGH CHANCE OF {disease}"
                 elif 70 < prediction <= 90:
-                    category = "CHANGES OF COLORS ON TREE LEAVES"
+                    category = f"POSSIBILITY OF {disease}"
                 else:
-                    category = "Not an Oak Wilt"
+                    category = f"DOES NOT HAVE {disease}"
 
                 gps_data = get_gps_data(save_path)
                 lat, lon = gps_data['lat'], gps_data['lon']
@@ -162,7 +109,7 @@ def upload_images():
 
     try:
         # Filter out "Not an Oak Wilt" from the results before saving to CSV and GeoJSON
-        filtered_results = sum([items for key, items in results.items() if key != "Not an Oak Wilt"], [])
+        filtered_results = sum([items for key, items in results.items() if key != f"DOES NOT HAVE {disease}"], [])
         if filtered_results:
             results_df = pd.DataFrame(filtered_results)
             csv_file_path = os.path.join(RESULTS_PATH, 'results.csv')
@@ -264,12 +211,14 @@ def download_results_geojson():
         logging.error(f"Error sending results.geojson: {e}")
         return jsonify({"message": "Error sending results.geojson"}), 500
 
-import random
-
 def predict_img(img):
-    # Mock: randomly generate a prediction score for testing
-    return random.uniform(0, 1)
+    img_resized = cv2.resize(img, (256,256))
+    img_normalized = img_resized / 255.0
+    img_expanded = np.expand_dims(img_normalized, axis=0)
 
+    prediction = model.predict(img_expanded)
+
+    return prediction[0][0]
 
 def get_gps_data(image_path):
     with Image.open(image_path) as img:
