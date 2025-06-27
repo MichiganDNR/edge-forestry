@@ -49,7 +49,7 @@
 
       <div v-else class="flex justify-center items-start gap-6">
         <div class="flex flex-col gap-2">
-          <a v-if="cvs-link" :href="csvLink" class="underline text-green-800 font-semibold" download>Download CSV</a>
+          <a v-if="csvLink" :href="csvLink" class="underline text-green-800 font-semibold" download>Download CSV</a>
           <a v-if="geojsonLink" :href="geojsonLink" class="underline text-green-800 font-semibold" download>Download GeoJSON</a>
         </div>
 
@@ -241,12 +241,25 @@ async function handleSeeResults() {
       probability: parseFloat(result.prediction) / 100,
     }))
 
+    const [csvBlob, geojsonBlob] = await Promise.all([
+    axios.get(`${apiURL}/results.csv`, { responseType: 'blob' }),
+    axios.get(`${apiURL}/results.geojson`, { responseType: 'blob' })
+    ])
+
+
     csvLink.value = `${apiURL}/results.csv`
     geojsonLink.value = `${apiURL}/results.geojson`
     currentPage.value = 1
 
     // Upload metadata and image URLs to Firestore
-    await uploadFiles(uploadedFiles.value, entryName.value, selectedDiseaseDropdown.value, results.value)
+    await uploadFiles(
+    uploadedFiles.value,
+    entryName.value,
+    selectedDiseaseDropdown.value,
+    results.value,
+    csvBlob.data,
+    geojsonBlob.data
+  )
 
     alert('Entry saved successfully!')
     showMap.value = false
@@ -265,7 +278,7 @@ async function handleSeeResults() {
 async function handleFeedback(fileName, feedbackType) {
   try {
     await axios.post(`${apiURL}/submit-feedback`, {
-      fileName,
+      filename,
       isCorrect: feedbackType == 'correct'
     })
     alert('Feedback submitted successfully!')
@@ -275,27 +288,37 @@ async function handleFeedback(fileName, feedbackType) {
   }
 }
 
-async function uploadFiles(uploadedFiles, entryName, disease, backendResults) {
+async function uploadFiles(uploadedFiles, entryName, disease, backendResults, csvBlob, geojsonBlob) {
   loading.value = true
   try {
     const user = getAuth().currentUser
     if (!user) throw new Error('User not logged in')
 
     const storage = getStorage()
+    const timestamp = Date.now()
+
     const fileUrls = await Promise.all(
       uploadedFiles.map(async (file) => {
-        const fileRef = storageRef(storage, `uploads/${user.uid}/${Date.now()}_${file.name}`)
+        const fileRef = storageRef(storage, `uploads/${user.uid}/${timestamp}_${file.name}`)
         await uploadBytes(fileRef, file)
         return await getDownloadURL(fileRef)
       })
     )
 
+    const csvRef = storageRef(storage, `uploads/${user.uid}/${timestamp}_results.csv`)
+    await uploadBytes(csvRef, csvBlob)
+    const csvDownloadUrl = await getDownloadURL(csvRef)
+
+    const geojsonRef = storageRef(storage, `uploads/${user.uid}/${timestamp}_results.geojson`)
+    await uploadBytes(geojsonRef, geojsonBlob)
+    const geojsonDownloadUrl = await getDownloadURL(geojsonRef)
+
     const docRef = await addDoc(collection(db, 'users', user.uid, 'uploads'), {
       entryName,
       disease,
       timestamp: serverTimestamp(),
-      csvLink: csvLink.value,
-      geojsonLink: geojsonLink.value,
+      csvLink: csvDownloadUrl,
+      geojsonLink: geojsonDownloadUrl,
       predictions: backendResults.map((res, i) => ({
         ...res,
         imageUrl: fileUrls[i]
@@ -316,5 +339,6 @@ async function uploadFiles(uploadedFiles, entryName, disease, backendResults) {
     loading.value = false
   }
 }
+
 
 </script>

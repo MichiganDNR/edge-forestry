@@ -211,23 +211,38 @@ def download_results_geojson():
         logging.error(f"Error sending results.geojson: {e}")
         return jsonify({"message": "Error sending results.geojson"}), 500
 
+# def predict_img(img):
+#     img_resized = cv2.resize(img, (256,256))
+#     img_normalized = img_resized / 255.0
+#     img_expanded = np.expand_dims(img_normalized, axis=0)
+
+#     prediction = model.predict(img_expanded)
+
+#     return prediction[0][0]
+
+import random
+
 def predict_img(img):
-    img_resized = cv2.resize(img, (256,256))
-    img_normalized = img_resized / 255.0
-    img_expanded = np.expand_dims(img_normalized, axis=0)
+    # return model.predict(...) in production
+    return random.uniform(0.7, 1)
 
-    prediction = model.predict(img_expanded)
-
-    return prediction[0][0]
 
 def get_gps_data(image_path):
-    with Image.open(image_path) as img:
-        exif_data = img._getexif()
-        if not exif_data:
-            return {'lat': None, 'lon': None}
+    try:
+        with Image.open(image_path) as img:
+            exif_data = img._getexif()
+            if not exif_data:
+                raise ValueError("No EXIF data")
 
-        lat, lon = get_decimal_coordinates(exif_data)
-        return {'lat': lat, 'lon': lon}
+            lat, lon = get_decimal_coordinates(exif_data)
+            if lat is None or lon is None:
+                raise ValueError("Invalid GPS data")
+
+            return {'lat': lat, 'lon': lon}
+    except Exception:
+        # Return arbitrary/fake GPS coordinates for testing
+        return {'lat': 42.9634, 'lon': -85.6681}  # Example: Grand Rapids, MI
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
