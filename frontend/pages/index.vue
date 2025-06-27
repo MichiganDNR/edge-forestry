@@ -10,7 +10,7 @@
               <div class="lg:col-span-6 text-center space-y-6 flex flex-col items-center">
                 <h1 class="font-semibold sm:font-normal leading-[0.9] text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl">
                   <span>AI Powered</span><br>
-                  <span class="text-green-950">Tree<br>Diagnosis</span>
+                  <span class="text-green-900">Tree<br>Diagnosis</span>
                 </h1>
 
                 <p class="text-green-950 text-sm sm:text-base lg:text-lg leading-relaxed font-light max-w-xl">
@@ -213,7 +213,7 @@ const goToPage = () => {
   if (!user.value) {
     router.push('/interactive')
   } else {
-    router.push('/settings')
+    router.push('/results')
   }
 }
 

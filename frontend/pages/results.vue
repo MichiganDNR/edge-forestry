@@ -29,6 +29,9 @@
         <button type="button" class="bg-green-900 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-3xl w-56" @click="handleSeeResults">
           See Results
         </button>
+        <p class="text-green-950 font-medium" v-if="uploadedFiles.length > 0">
+          {{ uploadedFiles.length }} uploaded {{ uploadedFiles.length === 1 ? 'photo' : 'photos' }}.
+        </p>
       </div>
 
       <ClientOnly>
@@ -115,7 +118,7 @@ const nuxtApp = useNuxtApp()
 const db = nuxtApp.$db
 
 const fileInput = ref(null)
-const uploadedFiles = ref(null)
+const uploadedFiles = ref([])
 const uploads = ref([])
 const entryName = ref("")
 const loading = ref(false)
@@ -175,10 +178,10 @@ function triggerFileInput() {
 }
 
 function handleFileUpload(event) {
-  uploadedFiles.value = Array.from(event.target.files)
   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg']
   const files = Array.from(event.target.files)
   const validFiles = files.filter(file => allowedTypes.includes(file.type))
+
   if (validFiles.length === 0) {
     alert('Only JPEG, JPG, PNG, or GIF files are allowed.')
     uploadedFiles.value = []
@@ -186,6 +189,7 @@ function handleFileUpload(event) {
     uploadedFiles.value = validFiles
   }
 }
+
 
 function selectProbabilityDropdown(probability) {
   selectedProbabilityDropdown.value = probability

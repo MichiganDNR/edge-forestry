@@ -74,7 +74,7 @@ const goToPage = () => {
   if (!user.value) {
     router.push('/interactive')
   } else {
-    router.push('/settings')
+    router.push('/results')
   }
 }
 

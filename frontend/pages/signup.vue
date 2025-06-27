@@ -121,7 +121,7 @@ const handleSignUp = async () => {
       userStore.setUser(user)
       userStore.setCredits(0)
       success.value = true
-      router.push('/settings')
+      router.push('/results')
     } catch (firestoreErr) {
       console.error('Failed to create Firestore user doc:', firestoreErr)
       error.value = 'Account created, but failed to save user data. Please contact support.'
