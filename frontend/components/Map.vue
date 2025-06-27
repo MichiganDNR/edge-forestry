@@ -7,7 +7,7 @@ import { onMounted, ref, onBeforeUnmount, watch } from 'vue'
 
 const props = defineProps({
   geojsonUrl: {
-    type: String,
+    type: [String, null],
     required: true
   }
 })
