@@ -131,6 +131,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 import { useNuxtApp } from '#app'
 import Appear from '~/components/Appear.vue'
 import 'leaflet/dist/leaflet.css'
@@ -235,6 +236,11 @@ function selectProbabilityDropdown(probability) {
 }
 
 function selectDiseaseDropdown(disease) {
+  if (disease !== 'Oak Wilt') {
+    alert('Only Oak Wilt is available at this time.')
+    return
+  }
+  
   selectedDiseaseDropdown.value = disease
   openDiseaseDropdown.value = false
 }
@@ -250,6 +256,30 @@ function isWithinSelectedProbability(prob) {
     default: return true
   }
 }
+
+onMounted(() => {
+  window.addEventListener('beforeunload', handleBeforeUnload)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+})
+
+function handleBeforeUnload(event) {
+  if (paginatedResults.value.length > 0) {
+    event.preventDefault()
+    event.returnValue = ''
+  }
+}
+
+onBeforeRouteLeave((to, from, next) => {
+  const answer = window.confirm('Are you sure you want to leave this page?')
+  if (answer) {
+    next()
+  } else {
+    next(false)
+  }
+})
 
 async function handleSeeResults() {
   if (uploadedFiles.value == 0|| !selectedDiseaseDropdown.value || !entryName.value) {
@@ -380,6 +410,5 @@ async function uploadFiles(uploadedFiles, entryName, disease, backendResults, cs
     loading.value = false
   }
 }
-
 
 </script>

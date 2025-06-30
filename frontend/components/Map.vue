@@ -46,6 +46,10 @@ onMounted(async () => {
     if (props.geojsonUrl) {
       await loadGeoJSON(props.geojsonUrl)
     }
+    else if (geojsonLayer) {
+      geojsonLayer.remove()
+      geojsonLayer = null
+    }
   }
 })
 
@@ -57,8 +61,18 @@ onBeforeUnmount(() => {
 })
 
 watch(() => props.geojsonUrl, (newUrl) => {
+  if (!map) return
+
+  if (geojsonLayer) {
+    geojsonLayer.remove()
+    geojsonLayer = null
+  }
+
   if (newUrl) {
     loadGeoJSON(newUrl)
+  } else {
+    // No GeoJSON: reset map view to default
+    map.setView([37.7749, -122.4194], 10)
   }
 })
 
@@ -69,6 +83,7 @@ async function loadGeoJSON(url) {
 
     if (geojsonLayer) {
       geojsonLayer.remove()
+      geojsonLayer = null
     }
 
     geojsonLayer = L.geoJSON(data, {

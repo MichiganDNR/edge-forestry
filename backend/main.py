@@ -226,10 +226,11 @@ def download_results_csv():
 @app.route('/results.geojson', methods=['GET'])
 def download_results_geojson():
     try:
-        return send_from_directory(RESULTS_PATH, 'results.geojson', as_attachment=True)
+        return send_from_directory(RESULTS_PATH, 'results.geojson', as_attachment=False)
     except Exception as e:
         logging.error(f"Error sending results.geojson: {e}")
         return jsonify({"message": "Error sending results.geojson"}), 500
+
 
 def predict_img(img):
     img_resized = cv2.resize(img, (256,256))
