@@ -27,7 +27,7 @@
       <div v-if="loadingUploads" class="text-center text-gray-500">Loading past results...</div>
       <div v-else-if="pastUploads.length === 0" class="text-center text-gray-500">No uploads found.</div>
 
-      <div v-else class="flex flex-col items-center gap-6">
+      <div v-else class="flex flex-row items-center gap-6">
         <PastResultsCard
           v-for="upload in pastUploads"
           :key="upload.id"

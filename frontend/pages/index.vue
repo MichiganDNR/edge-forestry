@@ -62,9 +62,9 @@
     <!-- Packages -->
     <SectionWrapper id="packages" tag="Packages" title="Pay by needs.">
       <div class="flex flex-wrap justify-center gap-4">
-        <Service title="Basic" price="5" description="One time" :perks="['100 uploads']" />
-        <Service title="Pro" price="25" description="Monthly" :perks="['1000 uploads']" />
-        <Service title="Premium" price="50" description="Monthly" :perks="['Unlimited uploads']" />
+        <Service title="Basic" price="5" description="One time" :perks="['TBD']" />
+        <Service title="Pro" price="25" description="Monthly" :perks="['TBD']" />
+        <Service title="Premium" price="50" description="Monthly" :perks="['TBD']" />
       </div>
     </SectionWrapper>
 

@@ -28,23 +28,23 @@ destination = os.getenv('DESTINATION_PATH')
 results = os.getenv('RESULTS_PATH')
 model = os.getenv('MODEL_PATH')
 
-#For once we have all access to every model
-# MODEL_MAP = {
-#     'oak_wilt': BASE_DIR / 'models/oak_wilt_model.h5',
-# }
-# def predict_img(img, model):
-#     img_resized = cv2.resize(img, (256, 256))
-#     img_normalized = img_resized / 255.0
-#     img_expanded = np.expand_dims(img_normalized, axis=0)
+# # For once we have all access to every model
+# # MODEL_MAP = {
+# #     'oak_wilt': BASE_DIR / 'models/oak_wilt_model.h5',
+# # }
+# # def predict_img(img, model):
+# #     img_resized = cv2.resize(img, (256, 256))
+# #     img_normalized = img_resized / 255.0
+# #     img_expanded = np.expand_dims(img_normalized, axis=0)
 
-#     prediction = model.predict(img_expanded)
-#     return prediction[0][0]
-# model_path = MODEL_MAP.get(disease)
-# if not model_path or not os.path.exists(model_path):
-#     return jsonify({"message": f"No model found for disease type: {disease}"}), 400
+# #     prediction = model.predict(img_expanded)
+# #     return prediction[0][0]
+# # model_path = MODEL_MAP.get(disease)
+# # if not model_path or not os.path.exists(model_path):
+# #     return jsonify({"message": f"No model found for disease type: {disease}"}), 400
 
-# model = tf.keras.models.load_model(model_path)
-# prediction = predict_img(img, model) * 100
+# # model = tf.keras.models.load_model(model_path)
+# # prediction = predict_img(img, model) * 100
 
 
 
@@ -231,20 +231,20 @@ def download_results_geojson():
         logging.error(f"Error sending results.geojson: {e}")
         return jsonify({"message": "Error sending results.geojson"}), 500
 
-# def predict_img(img):
-#     img_resized = cv2.resize(img, (256,256))
-#     img_normalized = img_resized / 255.0
-#     img_expanded = np.expand_dims(img_normalized, axis=0)
-
-#     prediction = model.predict(img_expanded)
-
-#     return prediction[0][0]
-
-import random
-
 def predict_img(img):
-    # return model.predict(...) in production
-    return random.uniform(0.7, 1)
+    img_resized = cv2.resize(img, (256,256))
+    img_normalized = img_resized / 255.0
+    img_expanded = np.expand_dims(img_normalized, axis=0)
+
+    prediction = model.predict(img_expanded)
+
+    return prediction[0][0]
+
+# import random
+
+# def predict_img(img):
+#     # return model.predict(...) in production
+#     return random.uniform(0.7, 1)
 
 
 def get_gps_data(image_path):

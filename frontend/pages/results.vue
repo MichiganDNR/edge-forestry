@@ -42,36 +42,59 @@
     </div>
 
     <div>
+      <!-- Section Heading -->
       <h2 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
         Results
       </h2>
 
-      <div v-if="results.length === 0" class="text-green-950 font-medium text-center text-xl mt-4">
-        No results to display.
-      </div>
-
-      <div v-else class="flex justify-center items-start gap-6">
+      <!-- Filter & Download Controls (Always Visible) -->
+      <div class="flex justify-center items-start gap-6 mb-6">
+        <!-- Download Links -->
         <div class="flex flex-col gap-2">
-          <a v-if="csvLink" :href="csvLink" class="underline text-green-800 font-semibold" download>Download CSV</a>
-          <a v-if="geojsonLink" :href="geojsonLink" class="underline text-green-800 font-semibold" download>Download GeoJSON</a>
+          <a v-if="csvLink" :href="csvLink" class="underline text-green-800 font-semibold" download>
+            Download CSV
+          </a>
+          <a v-if="geojsonLink" :href="geojsonLink" class="underline text-green-800 font-semibold" download>
+            Download GeoJSON
+          </a>
         </div>
 
+        <!-- Probability Dropdown -->
         <div class="relative w-56">
-          <button @click="openProbabilityDropdown = !openProbabilityDropdown" class="w-full bg-green-900 text-white text-center px-6 py-3 rounded-3xl font-semibold hover:bg-green-700 transition flex items-center justify-between">
+          <button
+            @click="openProbabilityDropdown = !openProbabilityDropdown"
+            class="w-full bg-green-900 text-white text-center px-6 py-3 rounded-3xl font-semibold hover:bg-green-700 transition flex items-center justify-between"
+          >
             {{ selectedProbabilityLabel }}
             <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          <div v-if="openProbabilityDropdown" class="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-3xl shadow-lg z-10">
-            <button v-for="probability in probabilities" :key="probability" @click="selectProbabilityDropdown(probability)" class="block w-full text-left px-6 py-3 rounded-3xl hover:bg-gray-200" :class="{ 'bg-green-900 text-white': selectedProbabilityDropdown === probability }">
+
+          <div
+            v-if="openProbabilityDropdown"
+            class="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-3xl shadow-lg z-10"
+          >
+            <button
+              v-for="probability in probabilities"
+              :key="probability"
+              @click="selectProbabilityDropdown(probability)"
+              class="block w-full text-left px-6 py-3 rounded-3xl hover:bg-gray-200"
+              :class="{ 'bg-green-900 text-white': selectedProbabilityDropdown === probability }"
+            >
               {{ probability }}
             </button>
           </div>
         </div>
       </div>
 
-      <div class="flex justify-center flex-wrap gap-4 mt-6">
+      <!-- No Results Message -->
+      <div v-if="paginatedResults.length === 0" class="text-green-950 font-medium text-center text-xl mt-20 mb-35">
+        No results to display.
+      </div>
+
+      <!-- Results Display -->
+      <div v-else class="flex justify-center flex-wrap gap-4 mt-6">
         <ResultCard
           v-for="(result, index) in paginatedResults"
           :key="index"
@@ -83,12 +106,26 @@
         />
       </div>
 
+      <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-6">
-        <button @click="currentPage--" :disabled="currentPage === 1" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50">Prev</button>
+        <button
+          @click="currentPage--"
+          :disabled="currentPage === 1"
+          class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
+        >
+          Prev
+        </button>
         <span class="text-sm">Page {{ currentPage }} of {{ totalPages }}</span>
-        <button @click="currentPage++" :disabled="currentPage === totalPages" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50">Next</button>
+        <button
+          @click="currentPage++"
+          :disabled="currentPage === totalPages"
+          class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
+
   </Appear>
 </template>
 
