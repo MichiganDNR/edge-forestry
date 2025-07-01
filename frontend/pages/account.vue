@@ -21,13 +21,13 @@
       </div>
     </div>
 
-    <div class="max-w-4xl mx-auto mt-12">
+    <div class="max-w-8xl mx-auto mt-12">
       <h2 class="text-2xl font-medium mb-4 text-green-950 text-center">Past Results</h2>
 
       <div v-if="loadingUploads" class="text-center text-gray-500">Loading past results...</div>
       <div v-else-if="pastUploads.length === 0" class="text-center text-gray-500">No uploads found.</div>
 
-      <div v-else class="flex flex-row items-center gap-6">
+      <div v-else class="flex flex-row flex-wrap justify-center items-center gap-6">
         <PastResultsCard
           v-for="upload in pastUploads"
           :key="upload.id"
@@ -36,11 +36,12 @@
         />
       </div>
     </div>
+
   </Appear>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Appear from '@/components/Appear.vue'
 import PastResultsCard from '@/components/PastResultsCard.vue'
@@ -98,6 +99,14 @@ const handleLogout = async () => {
 }
 
 const handleSeeResults = (upload) => {
-  router.push({ name: 'results-id', params: { id: upload.id }, query: { uid: $auth.currentUser.uid } })
+    router.push({
+    name: 'results',  // or use path: '/results' if unsure
+    query: {
+      id: upload.id,
+      uid: $auth.currentUser.uid,
+      fromHistory: 'true'
+    }
+  })
 }
+
 </script>

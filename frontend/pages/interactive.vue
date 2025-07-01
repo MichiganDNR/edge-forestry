@@ -101,6 +101,11 @@ function selectProbabilityDropdown(probability) {
 }
 
 function selectDiseaseDropdown(disease) {
+  if (disease !== 'Oak Wilt') {
+    alert('Only Oak Wilt is available at this time.')
+    return
+  }
+
   selectedDiseaseDropdown.value = disease
   openDiseaseDropdown.value = false
 }

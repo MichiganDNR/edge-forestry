@@ -43,7 +43,11 @@
 
     <div>
       <!-- Section Heading -->
-      <h2 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
+      <h2 v-if="isPastUpload" class="text-center sm:font-normal leading-[0.9] text-green-950 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl mb-8 mt-12">
+        Viewing saved results from {{ entryTitle }}.
+      </h2>
+
+      <h2 v-else class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
         Results
       </h2>
 
@@ -51,10 +55,10 @@
       <div class="flex justify-center items-start gap-6 mb-6">
         <!-- Download Links -->
         <div class="flex flex-col gap-2">
-          <a v-if="csvLink" :href="csvLink" class="underline text-green-800 font-semibold" download>
+          <a v-if="csvLink" :href="csvLink" class="underline text-green-800 font-semibold" @click="handleDownload" download>
             Download CSV
           </a>
-          <a v-if="geojsonLink" :href="geojsonLink" class="underline text-green-800 font-semibold" download>
+          <a v-if="geojsonLink" :href="geojsonLink" class="underline text-green-800 font-semibold" @click="handleDownload" download>
             Download GeoJSON
           </a>
         </div>
@@ -138,10 +142,11 @@ import 'leaflet/dist/leaflet.css'
 import Map from '/components/Map.vue'
 import ResultCard from '~/components/resultCard.vue'
 import axios from 'axios'
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll } from 'firebase/storage'
 import { getAuth } from 'firebase/auth'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
+import { doc, getDoc } from 'firebase/firestore'
 
 const userStore = useUserStore()
 const user = userStore.user  // reactive user object
@@ -159,6 +164,7 @@ const fileInput = ref(null)
 const uploadedFiles = ref([])
 const uploads = ref([])
 const entryName = ref("")
+const entryTitle = ref('')
 const loading = ref(false)
 const results = ref([])
 const showMap = ref(true)
@@ -167,6 +173,10 @@ const itemsPerPage = 28
 const apiURL = 'http://localhost:5001'
 const csvLink= ref(null)
 const geojsonLink = ref(null)
+const route = useRoute()
+const isPastUpload = route.query.fromHistory === 'true'
+const uploadId = route.query.id
+const uid = route.query.uid
 
 
 const openProbabilityDropdown = ref(false)
@@ -199,8 +209,14 @@ watch(selectedDisease, () => {
 
 onMounted(() => {
   window.addEventListener('click', handleClick)
+  window.addEventListener('beforeunload', handleBeforeUnload)
   results.value = []
+
+  if (isPastUpload) {
+    loadPastUpload()
+  }
 })
+
 
 onBeforeUnmount(() => window.removeEventListener('click', handleClick))
 
@@ -240,7 +256,7 @@ function selectDiseaseDropdown(disease) {
     alert('Only Oak Wilt is available at this time.')
     return
   }
-  
+
   selectedDiseaseDropdown.value = disease
   openDiseaseDropdown.value = false
 }
@@ -265,19 +281,27 @@ onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 
+let isDownloading = false
+
 function handleBeforeUnload(event) {
-  if (paginatedResults.value.length > 0) {
+  if (isDownloading) return 
+
+  if (results.value.length > 0) {
     event.preventDefault()
     event.returnValue = ''
   }
 }
 
 onBeforeRouteLeave((to, from, next) => {
-  const answer = window.confirm('Are you sure you want to leave this page?')
-  if (answer) {
-    next()
+  if (results.value.length > 0) {
+    const answer = window.confirm('Are you sure you want to leave this page? Your results will be lost on this page.')
+    if (answer) {
+      next()
+    } else {
+      next(false)
+    }
   } else {
-    next(false)
+    next()
   }
 })
 
@@ -340,16 +364,51 @@ async function handleSeeResults() {
 
   } catch (err) {
     console.error('Error during analysis:', err)
-    alert('Error processing your file or saving the entry. Make sure you’re signed in and try again.')
+    alert('Error processing your file or saving the entry.')
   } finally {
     loading.value = false
   }
 }
 
+async function loadPastUpload() {
+  try {
+    if (!uid || !uploadId) throw new Error('Missing upload info.')
+
+    const uploadDocRef = doc(db, 'users', uid, 'uploads', uploadId)
+    const uploadSnap = await getDoc(uploadDocRef)
+
+    if (!uploadSnap.exists()) throw new Error('Upload not found.')
+
+    const data = uploadSnap.data()
+
+    entryTitle.value = data.entryName
+    selectedDiseaseDropdown.value = data.disease
+    results.value = data.predictions || []
+
+    csvLink.value = data.csvLink ?? null
+    geojsonLink.value = data.geojsonLink ?? null
+
+    showMap.value = false
+    setTimeout(() => {
+      showMap.value = true
+    }, 0)
+  } catch (err) {
+    console.error('Failed to load past upload:', err)
+    alert('Failed to load saved entry.')
+  }
+}
+
+function handleDownload() {
+  isDownloading = true
+  setTimeout(() => {
+    isDownloading = false
+  }, 1000) 
+}
+
 async function handleFeedback(fileName, feedbackType) {
   try {
     await axios.post(`${apiURL}/submit-feedback`, {
-      filename,
+      fileName,
       isCorrect: feedbackType == 'correct'
     })
     alert('Feedback submitted successfully!')
