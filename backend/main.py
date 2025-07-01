@@ -164,7 +164,23 @@ def upload_images():
                 json.dump(geojson_data, geojson_file)
             logging.info(f"GeoJSON file created at {geojson_file_path}")
         else:
-            logging.info("No valid data for CSV or GeoJSON")
+            logging.info("No valid data for CSV or GeoJSON — generating empty files.")
+
+            # Create an empty CSV file
+            empty_df = pd.DataFrame(columns=['filename', 'prediction', 'classification', 'latitude', 'longitude'])
+            csv_file_path = os.path.join(RESULTS_PATH, 'results.csv')
+            empty_df.to_csv(csv_file_path, index=False)
+            logging.info(f"Empty CSV file created at {csv_file_path}")
+
+            # Create an empty GeoJSON file
+            empty_geojson = {
+                "type": "FeatureCollection",
+                "features": []
+            }
+            geojson_file_path = os.path.join(RESULTS_PATH, 'results.geojson')
+            with open(geojson_file_path, 'w') as geojson_file:
+                json.dump(empty_geojson, geojson_file)
+            logging.info(f"Empty GeoJSON file created at {geojson_file_path}")
 
     except Exception as e:
         logging.error(f"Failed to write results files: {e}")
