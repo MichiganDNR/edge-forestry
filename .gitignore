@@ -31,3 +31,10 @@ db.sqlite3
 venv/
 .venv/
 /backend/dnr/*.env
+
+.env
+*.pem
+*.key
+.env
+.env
+.env
