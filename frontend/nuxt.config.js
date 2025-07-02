@@ -16,5 +16,8 @@ export default defineNuxtConfig({
   tailwindcss: {
     exposeConfig: true,
     viewer: true,
+  },
+  runtimeConfig: {
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
   }
 })

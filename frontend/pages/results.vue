@@ -42,18 +42,17 @@
     </div>
 
     <div>
-      <!-- Section Heading -->
+      <!-- 
       <h2 v-if="isPastUpload" class="text-center sm:font-normal leading-[0.9] text-green-950 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl mb-8 mt-12">
         Viewing saved results from {{ entryTitle }}.
-      </h2>
+      </h2> -->
 
-      <h2 v-else class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
+      <h2 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
         Results
       </h2>
 
-      <!-- Filter & Download Controls (Always Visible) -->
+      
       <div class="flex justify-center items-start gap-6 mb-6">
-        <!-- Download Links -->
         <div class="flex flex-col gap-2">
           <a v-if="csvLink" :href="csvLink" class="underline text-green-800 font-semibold" @click="handleDownload" download>
             Download CSV
@@ -63,7 +62,6 @@
           </a>
         </div>
 
-        <!-- Probability Dropdown -->
         <div class="relative w-56">
           <button
             @click="openProbabilityDropdown = !openProbabilityDropdown"
@@ -92,12 +90,10 @@
         </div>
       </div>
 
-      <!-- No Results Message -->
       <div v-if="paginatedResults.length === 0" class="text-green-950 font-medium text-center text-xl mt-20 mb-35">
         No results to display.
       </div>
 
-      <!-- Results Display -->
       <div v-else class="flex justify-center flex-wrap gap-4 mt-6">
         <ResultCard
           v-for="(result, index) in paginatedResults"
@@ -110,7 +106,6 @@
         />
       </div>
 
-      <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-6">
         <button
           @click="currentPage--"

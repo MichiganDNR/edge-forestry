@@ -100,7 +100,7 @@ const handleLogout = async () => {
 
 const handleSeeResults = (upload) => {
     router.push({
-    name: 'results',  // or use path: '/results' if unsure
+    name: 'results',  
     query: {
       id: upload.id,
       uid: $auth.currentUser.uid,

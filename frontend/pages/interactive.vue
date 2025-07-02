@@ -42,7 +42,6 @@
       </ClientOnly>
     </div>
 
-    <!-- Centered Login Button Below Map -->
     <NuxtLink to="/login">
       <div class="flex justify-center mt-8">
         <button
