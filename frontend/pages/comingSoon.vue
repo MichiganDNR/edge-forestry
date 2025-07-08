@@ -1,6 +1,7 @@
 <template>
+  <Appear>
   <div
-    class="flex items-center justify-center min-h-screen bg-gray-50 px-4"
+    class="flex items-center justify-center min-h-screen px-4"
   >
     <div class="text-center">
       <h1 class="text-green-950 text-5xl font-extrabold mb-4">
@@ -11,10 +12,15 @@
       </p>
       <button
         @click="$router.push('/')"
-        class="mt-8 px-6 py-3 bg-green-900 text-white rounded-2xl hover:bg-green-800 transition"
+        class="mt-8 px-6 py-3 bg-green-700 text-white rounded-full hover:bg-green-800 transition"
       >
         Go Back Home
       </button>
     </div>
   </div>
+  </Appear>
 </template>
+
+<script>
+import Appear from '/components/Appear.vue'
+</script>

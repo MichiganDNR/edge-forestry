@@ -252,7 +252,12 @@ const faqState = ref({
       question: 'Can I use this service for commercial forestry?',
       answer: 'Yes, our platform is designed for both individuals and forestry professionals.',
       open: false,
-    }
+    },
+    {
+      question: 'Can this be used remotely?',
+      answer: 'Edge Forestry is currently building a proprietary device with our software and model for remote use in forests.',
+      open: false,
+    },
   ]
 })
 
