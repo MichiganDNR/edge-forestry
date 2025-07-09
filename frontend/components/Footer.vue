@@ -44,11 +44,7 @@ const isHome = computed(() => route.path === '/')
 
 
 const goToPage = () => {
-  if (!user.value) {
-    router.push('/interactive')
-  } else {
     router.push('/results')
-  }
 }
 
 const scrollToSection = async (id) => {

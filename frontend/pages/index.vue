@@ -26,7 +26,7 @@
               <div class="lg:col-span-6 flex justify-center">
                 <div class="w-full aspect-[3/4] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl 2xl:max-h-[700px] max-h-[600px] overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl">
                   <img 
-                    src="/images/pic.webp" 
+                    src="public/images/pic.webp" 
                     alt="Aerial view of forest canopy showing healthy trees"
                     class="w-full h-full object-cover object-center"
                   />
@@ -60,11 +60,17 @@
     </SectionWrapper>
 
     <!-- Packages -->
-    <SectionWrapper id="packages" tag="Packages" title="Pay by needs.">
-      <div class="flex flex-wrap justify-center gap-4">
+    <SectionWrapper id="packages" tag="Packages" title="Pay by needs." class="flex justify-center">
+      <!-- <div class="flex flex-wrap justify-center gap-4">
         <Service title="Basic" price="5" description="One time" :perks="['TBD']" />
-        <Service title="Pro" price="25" description="Monthly" :perks="['TBD']" />
         <Service title="Premium" price="50" description="Monthly" :perks="['TBD']" />
+      </div> -->
+      <div class="w-full max-w-md m-8 h-[300px] 2xl:max-w-2xl 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-green-700
+    hover:scale-105 transform transition-all duration-300">
+        <p class="text-xl text-green-950 m-12">
+          If you have any questions on packaging, services, or pricing, please click to button below to send us a contact form.
+        </p>
+        <Button label="Contact Us." :scrollTo="'contact-us'"/>
       </div>
     </SectionWrapper>
 
@@ -94,28 +100,34 @@
         <div class="flex flex-row gap-4">
           <!-- Rahat -->
           <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-            <img 
-              src="/images/Rahat.png" 
-              class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
-            />
+            <a href="https://www.linkedin.com/in/rahatibnrafiq/">
+              <img 
+                src="public/images/Rahat.png" 
+                class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
+              />
+            </a>
             <p class="mt-2 text-center text-green-950 font-medium">Rahat Rafiq</p>
           </div>
 
           <!-- Muttaki -->
           <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-            <img 
-              src="/images/Muttaki.png" 
-              class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
-            />
+            <a href="https://www.linkedin.com/in/muttaki-bismoy/">
+              <img 
+                src="public/images/Muttaki.png" 
+                class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
+              />
+            </a>
             <p class="mt-2 text-center text-green-950 font-medium">Muttaki Bismoy</p>
           </div>
 
           <!-- Collin -->
           <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-            <img 
-              src="/images/Collin.png" 
-              class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
-            />
+            <a href="https://www.linkedin.com/in/collin-brennan-078407273/">
+              <img 
+                src="public/images/Collin.png" 
+                class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
+              />
+          </a>
             <p class="mt-2 text-center text-green-950 font-medium">Collin Brennan</p>
           </div>
         </div>
@@ -210,11 +222,7 @@ const userStore = useUserStore()
 const { user } = storeToRefs(userStore) // makes user a ref
 
 const goToPage = () => {
-  if (!user.value) {
-    router.push('/interactive')
-  } else {
     router.push('/results')
-  }
 }
 
 // Constants
@@ -240,22 +248,27 @@ const faqState = ref({
   items: [
     {
       question: 'How does the AI analyze tree photos?',
-      answer: 'Our model uses image classification and segmentation to detect disease symptoms based on trained patterns.',
+      answer: `Our system uses artificial intelligence to detect oak wilt from aerial images taken by drones. 
+               When you upload the images, our AI model analyzes patterns in tree color, canopy texture, and spatial changes that are invisible to the human eye. 
+               It compares this data to thousands of known cases to determine the likelihood of infection. As our users submit more feedback, the model continuously improves. 
+               The result is a fast, accurate assessment that helps prioritize on-the-ground action.
+              `
+,
       open: false,
     },
     {
       question: 'What image formats are supported?',
-      answer: 'We support JPEG, PNG, and WebP formats. High-resolution images yield better results.',
+      answer: `We support standard image formats such as JPEG, PNG, and TIFF because they are widely used in drone imaging and preserve essential visual data for analysis. These formats ensure compatibility across devices while maintaining the resolution needed for accurate oak wilt detection by our AI model.`,
       open: false,
     },
     {
       question: 'Can I use this service for commercial forestry?',
-      answer: 'Yes, our platform is designed for both individuals and forestry professionals.',
+      answer: `The platform is designed for both individual and commercial forestry as oak wilt poses a serious threat at every scale—from single property owners to large land managers. By offering accessible, high-accuracy detection, we empower everyone from private landowners to forestry professionals to act early and make informed decisions to protect their trees and investments.`,
       open: false,
     },
     {
       question: 'Can this be used remotely?',
-      answer: 'Edge Forestry is currently building a proprietary device with our software and model for remote use in forests.',
+      answer: 'In order to enable the best user experience for offline use, Edge Forestry is in the process of curating a proprietary device with our ai model and software. This device will allow for optimal remote use of our model and eliminate back and forth between sites.',
       open: false,
     },
   ]

@@ -71,11 +71,7 @@ const userStore = useUserStore()
 const { user } = storeToRefs(userStore) // makes user a ref
 
 const goToPage = () => {
-  if (!user.value) {
-    router.push('/interactive')
-  } else {
     router.push('/results')
-  }
 }
 
 

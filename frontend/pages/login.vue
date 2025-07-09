@@ -78,7 +78,7 @@ const handleLogin = async () => {
       const data = userSnap.data()
       userStore.setUser(user)
       userStore.setCredits(data.credit)
-      router.push('/') 
+      router.push('/results') 
     } else {
       error.value = 'No profile found for this user.'
     }
