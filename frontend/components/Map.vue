@@ -98,7 +98,7 @@ async function loadGeoJSON(url) {
           <div class="${bgClass} text-sm p-3 rounded shadow-sm leading-snug">
           <strong>Condition: ${classification}</strong><br/>
             There is a <strong>${prediction}</strong> chance of Oak Wilt at<br/>
-            the coordinates: [${lat?.toFixed(4)}, ${lng?.toFixed(4)}].
+            the coordinates:<br/><strong>[${lat}, ${lng}]</strong>.
           </div>
         `
 

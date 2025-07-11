@@ -180,7 +180,7 @@ const openDiseaseDropdown = ref(false)
 const selectedDiseaseDropdown = ref(null)
 const selectedDisease = ref(null)
 
-const probabilities = ['All','No Condition: <70%','Low Prob: 70-90%','High Prob: 90-99.5%','Has Condition: >99.5%']
+const probabilities = ['All','No Condition: <70%','Possibility: 70-90%','High Chance: 90-99.5%','Has Condition: >99.5%']
 const diseases = ['Oak Wilt','Hemlock Woolly Adelgid','Beech Bark Disease','Beech Leaf Disease']
 
 const selectedProbabilityLabel = computed(() => selectedProbabilityDropdown.value || 'Choose Probability')
@@ -261,8 +261,8 @@ function isWithinSelectedProbability(prob) {
   if (!label || label === 'All') return true
   switch (label) {
     case 'No Condition: <70%': return prob < 0.70
-    case 'Low Prob: 70-90%': return prob >= 0.70 && prob < 0.90
-    case 'High Prob: 90-99.5%': return prob >= 0.90 && prob < 0.995
+    case 'Possibility: 70-90%': return prob >= 0.70 && prob < 0.90
+    case 'High Chance: 90-99.5%': return prob >= 0.90 && prob < 0.995
     case 'Has Condition: >99.5%': return prob >= 0.995
     default: return true
   }
@@ -400,11 +400,11 @@ function handleDownload() {
   }, 1000) 
 }
 
-async function handleFeedback(fileName, feedbackType) {
+async function handleFeedback(fileName, isCorrect) {
   try {
     await axios.post(`${apiURL}/submit-feedback`, {
-      fileName,
-      isCorrect: feedbackType == 'correct'
+      filename: fileName,
+      isCorrect: isCorrect
     })
     alert('Feedback submitted successfully!')
   } catch (err) {
@@ -412,6 +412,7 @@ async function handleFeedback(fileName, feedbackType) {
     alert('Failed to send feedback.')
   }
 }
+
 
 async function uploadFiles(uploadedFiles, entryName, disease, backendResults, csvBlob, geojsonBlob) {
   loading.value = true

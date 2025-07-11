@@ -21,21 +21,35 @@
       </div>
     </div>
 
-    <div class="max-w-8xl mx-auto mt-12">
+    <div class="max-w-8xl mx-auto mt-12 px-4">
       <h2 class="text-2xl font-medium mb-4 text-green-950 text-center">Past Results</h2>
 
       <div v-if="loadingUploads" class="text-center text-gray-500">Loading past results...</div>
       <div v-else-if="pastUploads.length === 0" class="text-center text-gray-500">No uploads found.</div>
 
-      <div v-else class="flex flex-row flex-wrap justify-center items-center gap-6">
-        <PastResultsCard
-          v-for="upload in pastUploads"
-          :key="upload.id"
-          :upload="upload"
-          @see-results="handleSeeResults"
-        />
+      <div v-else class="flex justify-center overflow-x-auto">
+        <table class=" min-w-3/4 border-collapse border border-gray-300 rounded-lg overflow-hidden">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="border border-gray-300 px-4 py-2 text-left">Entry Name</th>
+              <th class="border border-gray-300 px-4 py-2 text-left">Disease</th>
+              <th class="border border-gray-300 px-4 py-2 text-left">Date</th>
+              <th class="border border-gray-300 px-4 py-2 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <PastResultsCard
+              v-for="upload in pastUploads"
+              :key="upload.id"
+              :upload="upload"
+              @see-results="handleSeeResults"
+            />
+          </tbody>
+        </table>
       </div>
     </div>
+
+    
 
   </Appear>
 </template>
@@ -78,15 +92,15 @@ onMounted(async () => {
 
     // Past Uploads
     const uploadsSnap = await getDocs(collection($db, 'users', user.uid, 'uploads'))
-    pastUploads.value = uploadsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-  } catch (err) {
-    console.error(err)
-    error.value = 'Failed to load data.'
-  } finally {
-    loading.value = false
-    loadingUploads.value = false
-  }
-})
+        pastUploads.value = uploadsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      } catch (err) {
+        console.error(err)
+        error.value = 'Failed to load data.'
+      } finally {
+        loading.value = false
+        loadingUploads.value = false
+      }
+    })
 
 const handleLogout = async () => {
   try {

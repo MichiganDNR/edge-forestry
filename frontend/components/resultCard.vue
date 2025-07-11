@@ -40,13 +40,13 @@
     <div class="flex flex-row gap-2 mt-2">
       <button
         class="bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm hover:bg-green-200 border-2 border-green-800"
-        @click="$emit('feedback', fileName, 'Healthy')"
+        @click="$emit('feedback', fileName, true)"
       >
         <img src="public/images/tu.png"/>
       </button>
       <button
         class="bg-red-100 text-red-800 px-4 py-1 rounded-full text-sm hover:bg-red-200 border-2 border-red-800"
-        @click="$emit('feedback', fileName, 'Healthy')"
+        @click="$emit('feedback', fileName, false)"
       >
         <img src="public/images/td.png"/>
       </button>

@@ -258,7 +258,7 @@ const faqState = ref({
     },
     {
       question: 'What image formats are supported?',
-      answer: `We support standard image formats such as JPEG, PNG, and TIFF because they are widely used in drone imaging and preserve essential visual data for analysis. These formats ensure compatibility across devices while maintaining the resolution needed for accurate oak wilt detection by our AI model.`,
+      answer: `We support standard image formats such as JPG, JPEG, PNG, and GIF because they are widely used in drone imaging and preserve essential visual data for analysis. These formats ensure compatibility across devices while maintaining the resolution needed for accurate oak wilt detection by our AI model.`,
       open: false,
     },
     {
