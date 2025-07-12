@@ -42,7 +42,7 @@ const props = defineProps({
 })
 
 const formattedDate = computed(() => {
-  if (!props.upload.timestamp?.toDate) return ''
-  return props.upload.timestamp.toDate().toLocaleString()
+  const date = props.upload.timestamp
+  return date instanceof Date ? date.toLocaleString() : ''
 })
 </script>

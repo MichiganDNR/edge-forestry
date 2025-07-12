@@ -1,12 +1,10 @@
 <template>
   <div class="space-y-12 bg-white">
-    <!-- Hero Section -->
     <Appear>
       <section class="relative w-screen min-h-screen overflow-hidden">
         <div class="relative z-10 scroll-mt-20 py-20 px-4 text-center">
           <div class="w-full max-w-7xl mx-auto">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-y-12 gap-x-8 lg:gap-x-16 items-center">
-              <!-- Left Content -->
               <div class="lg:col-span-6 text-center space-y-6 flex flex-col items-center">
                 <h1 class="font-semibold sm:font-normal leading-[0.9] text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl">
                   <span>AI Powered</span><br>
@@ -22,14 +20,36 @@
                 </div>
               </div>
 
-              <!-- Right Image -->
               <div class="lg:col-span-6 flex justify-center">
-                <div class="w-full aspect-[3/4] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl 2xl:max-h-[700px] max-h-[600px] overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl">
-                  <img 
-                    src="public/images/pic.webp" 
+                <div class="w-full aspect-[3/4] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl 2xl:max-h-[700px] max-h-[600px] overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl relative">
+                  <img
+                    :key="currentImageIndex"
+                    :src="currentImageSrc"
                     alt="Aerial view of forest canopy showing healthy trees"
                     class="w-full h-full object-cover object-center"
                   />
+
+                  <button
+                    @click="prevImage"
+                    class="absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 text-green-800 p-2 rounded-full z-10 hover:bg-opacity-75 focus:outline-none"
+                  >
+                    &#10094; </button>
+                  <button
+                    @click="nextImage"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 text-green-800 p-2 rounded-full z-10 hover:bg-opacity-75 focus:outline-none"
+                  >
+                    &#10095; </button>
+
+                  <div class="absolute bottom-4 flex space-x-2 z-10 w-full justify-center">
+                    <span
+                      v-for="(image, index) in heroImages"
+                      :key="index"
+                      @click="goToImage(index)"
+                      class="block w-3 h-3 rounded-full cursor-pointer transition-colors duration-300"
+                      :class="{ 'bg-white': index === currentImageIndex, 'bg-gray-400': index !== currentImageIndex }"
+                      aria-label="Go to slide"
+                    ></span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -38,7 +58,6 @@
       </section>
     </Appear>
 
-    <!-- How It Works -->
     <SectionWrapper
       id="how-it-works"
       tag="How It Works"
@@ -59,12 +78,7 @@
       </div>
     </SectionWrapper>
 
-    <!-- Packages -->
     <SectionWrapper id="packages" tag="Packages" title="Pay by needs." class="flex justify-center">
-      <!-- <div class="flex flex-wrap justify-center gap-4">
-        <Service title="Basic" price="5" description="One time" :perks="['TBD']" />
-        <Service title="Premium" price="50" description="Monthly" :perks="['TBD']" />
-      </div> -->
       <div class="w-full max-w-md m-8 h-[300px] 2xl:max-w-2xl 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-green-700
     hover:scale-105 transform transition-all duration-300">
         <p class="text-xl text-green-950 m-12">
@@ -74,7 +88,6 @@
       </div>
     </SectionWrapper>
 
-    <!-- FAQ -->
     <SectionWrapper id="faqs" tag="FAQs" title="Frequently Asked Questions">
       <div class="max-w-3xl mx-auto space-y-4 2xl:space-y-8 2xl:mt-10">
         <div v-for="(faq, index) in faqState.items" :key="index" class="border p-4 rounded-xl shadow-sm">
@@ -89,7 +102,6 @@
       </div>
     </SectionWrapper>
 
-    <!-- About -->
     <SectionWrapper
       id="about-us"
       tag="About Us"
@@ -98,33 +110,30 @@
     >
       <div class="w-full flex justify-center mb-7">
         <div class="flex flex-row gap-4">
-          <!-- Rahat -->
           <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
             <a href="https://www.linkedin.com/in/rahatibnrafiq/">
-              <img 
-                src="public/images/Rahat.png" 
+              <img
+                src="public/images/Rahat.png"
                 class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
               />
             </a>
             <p class="mt-2 text-center text-green-950 font-medium">Rahat Rafiq</p>
           </div>
 
-          <!-- Muttaki -->
           <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
             <a href="https://www.linkedin.com/in/muttaki-bismoy/">
-              <img 
-                src="public/images/Muttaki.png" 
+              <img
+                src="public/images/Muttaki.png"
                 class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
               />
             </a>
             <p class="mt-2 text-center text-green-950 font-medium">Muttaki Bismoy</p>
           </div>
 
-          <!-- Collin -->
           <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
             <a href="https://www.linkedin.com/in/collin-brennan-078407273/">
-              <img 
-                src="public/images/Collin.png" 
+              <img
+                src="public/images/Collin.png"
                 class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
               />
           </a>
@@ -138,7 +147,6 @@
       </div>
     </SectionWrapper>
 
-    <!-- Contact -->
     <SectionWrapper
       id="contact-us"
       tag="Contact Us"
@@ -207,32 +215,51 @@
 
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue' 
 import Button from '~/components/MainButton.vue'
 import Appear from '~/components/Appear.vue'
 import SectionWrapper from '~/components/SectionWrapper.vue'
 import Service from '~/components/PackagesContainer.vue'
 import emailjs from '@emailjs/browser'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import { storeToRefs } from 'pinia'  
 
 const router = useRouter()
-const userStore = useUserStore()
-const { user } = storeToRefs(userStore) // makes user a ref
 
 const goToPage = () => {
     router.push('/results')
 }
 
-// Constants
+const heroImages = ref([
+  '/images/pic.webp', 
+  '/images/pic2.webp', 
+  '/images/pic3.webp',
+]);
+
+const currentImageIndex = ref(0);
+
+const currentImageSrc = computed(() => heroImages.value[currentImageIndex.value]);
+
+const nextImage = () => {
+  currentImageIndex.value = (currentImageIndex.value + 1) % heroImages.value.length;
+};
+
+
+const prevImage = () => {
+
+  currentImageIndex.value = (currentImageIndex.value - 1 + heroImages.value.length) % heroImages.value.length;
+};
+
+const goToImage = (index) => {
+  currentImageIndex.value = index;
+};
+
+
 const EMAILJS_CONFIG = {
   serviceId: 'service_817br4o',
   templateId: 'template_1unsqk9',
   publicKey: 'aRFiTIS1dQnPwbGDs'
 }
 
-// Form state
 const formState = ref({
   name: '',
   email: '',
@@ -243,17 +270,15 @@ const formState = ref({
   validationErrors: {}
 })
 
-// FAQ state
 const faqState = ref({
   items: [
     {
       question: 'How does the AI analyze tree photos?',
-      answer: `Our system uses artificial intelligence to detect oak wilt from aerial images taken by drones. 
-               When you upload the images, our AI model analyzes patterns in tree color, canopy texture, and spatial changes that are invisible to the human eye. 
-               It compares this data to thousands of known cases to determine the likelihood of infection. As our users submit more feedback, the model continuously improves. 
+      answer: `Our system uses artificial intelligence to detect oak wilt from aerial images taken by drones.
+               When you upload the images, our AI model analyzes patterns in tree color, canopy texture, and spatial changes that are invisible to the human eye.
+               It compares this data to thousands of known cases to determine the likelihood of infection. As our users submit more feedback, the model continuously improves.
                The result is a fast, accurate assessment that helps prioritize on-the-ground action.
-              `
-,
+              `,
       open: false,
     },
     {
@@ -274,7 +299,6 @@ const faqState = ref({
   ]
 })
 
-// Methods
 const scrollToSection = (id) => {
   if (id === 'top') {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -310,7 +334,7 @@ const validateForm = () => {
 const sendEmail = async () => {
   formState.value.error = null
   formState.value.isSent = false
-  
+
   if (!validateForm()) return
 
   formState.value.isLoading = true
@@ -343,7 +367,6 @@ const sendEmail = async () => {
     }, 3000)
   }
 }
-
 const toggleFaq = (index) => {
   faqState.value.items[index].open = !faqState.value.items[index].open
 }

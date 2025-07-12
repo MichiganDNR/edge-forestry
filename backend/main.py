@@ -12,10 +12,13 @@ import logging
 import json
 from pathlib import Path
 from dotenv import load_dotenv
-from sklearn.model_selection import train_test_split #Newly Added
+from sklearn.model_selection import train_test_split
+import threading
+import time
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {'origins': "*"}})
+
+CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -26,46 +29,25 @@ BASE_DIR = Path(__file__).resolve().parent
 
 destination = os.getenv('DESTINATION_PATH')
 results = os.getenv('RESULTS_PATH')
-model = os.getenv('MODEL_PATH')
+model_path = os.getenv('MODEL_PATH')
 
-# # For once we have all access to every model
-# # MODEL_MAP = {
-# #     'oak_wilt': BASE_DIR / 'models/oak_wilt_model.h5',
-# # }
-# # def predict_img(img, model):
-# #     img_resized = cv2.resize(img, (256, 256))
-# #     img_normalized = img_resized / 255.0
-# #     img_expanded = np.expand_dims(img_normalized, axis=0)
-
-# #     prediction = model.predict(img_expanded)
-# #     return prediction[0][0]
-# # model_path = MODEL_MAP.get(disease)
-# # if not model_path or not os.path.exists(model_path):
-# #     return jsonify({"message": f"No model found for disease type: {disease}"}), 400
-
-# # model = tf.keras.models.load_model(model_path)
-# # prediction = predict_img(img, model) * 100
-
-
-
-if not all([destination, results, model]):
+if not all([destination, results, model_path]):
     raise EnvironmentError("Environment variables not set")
 
 # Retrieve values from environment variables
 DESTINATION_PATH = BASE_DIR / Path(destination)
 RESULTS_PATH = BASE_DIR / Path(results)
-MODEL_PATH = BASE_DIR / Path(model)
+MODEL_PATH = BASE_DIR / Path(model_path)
 
 # Create directories if they do not exist
 DESTINATION_PATH.mkdir(parents=True, exist_ok=True)
 RESULTS_PATH.mkdir(parents=True, exist_ok=True)
 
-
-FEEDBACK_FILE_PATH = DESTINATION_PATH / os.getenv('FEEDBACK_FILE_NAME')
+FEEDBACK_FILE_PATH = DESTINATION_PATH / os.getenv('FEEDBACK_FILE_NAME', 'feedback.json')
 
 # Initialize feedback accumulator
-FEEDBACK_BATCH_SIZE = 10 #Newly Added
-feedback_accumulator = [] #Newly Added
+FEEDBACK_BATCH_SIZE = 10
+feedback_accumulator = []
 
 logging.basicConfig(level=logging.INFO)
 
@@ -197,35 +179,112 @@ def upload_images():
 
 @app.route('/submit-feedback', methods=['POST'])
 def submit_feedback():
-    feedback_data = request.get_json()
-    
-    if not feedback_data or 'filename' not in feedback_data or 'isCorrect' not in feedback_data:
-        return jsonify({'message': 'Invalid feedback data'}), 400
-    
-    filename = feedback_data['filename']
-    is_correct = feedback_data['isCorrect']
-
-    # Load existing feedback
     try:
-        with open(FEEDBACK_FILE_PATH, 'r') as file:
-            feedback_list = json.load(file)
-    except FileNotFoundError:
-        feedback_list = []
+        feedback_data = request.get_json()
+        
+        # Enhanced validation
+        if not feedback_data:
+            return jsonify({'message': 'No data provided'}), 400
+        
+        required_fields = ['filename', 'isCorrect']
+        missing_fields = [field for field in required_fields if field not in feedback_data]
+        
+        if missing_fields:
+            return jsonify({'message': f'Missing required fields: {missing_fields}'}), 400
+        
+        filename = feedback_data['filename']
+        is_correct = feedback_data['isCorrect']
+        
+        # Validate filename (prevent path traversal)
+        if not filename or '..' in filename or '/' in filename:
+            return jsonify({'message': 'Invalid filename'}), 400
+        
+        # Validate isCorrect is boolean
+        if not isinstance(is_correct, bool):
+            return jsonify({'message': 'isCorrect must be boolean'}), 400
 
-    # Append new feedback
-    feedback_list.append({
-        'filename': filename,
-        'isCorrect': is_correct
-    })
+        # Save feedback to file
+        save_feedback_to_file(filename, is_correct)
+        
+        # Add feedback to accumulator for retraining
+        try:
+            add_feedback_to_accumulator(filename, is_correct)
+        except Exception as e:
+            logging.error(f"Error adding feedback to accumulator: {e}")
+            # Continue execution - feedback was saved successfully
+        
+        return jsonify({'message': 'Feedback received'}), 200
+        
+    except Exception as e:
+        logging.error(f"Feedback submission error: {e}")
+        return jsonify({'message': 'Internal server error'}), 500
 
-    # Save feedback
-    with open(FEEDBACK_FILE_PATH, 'w') as file:
-        json.dump(feedback_list, file)
-    
-    # Retrain the model based on feedback
-    retrain_model(feedback_data)
+def save_feedback_to_file(filename, is_correct):
+    """Save feedback to JSON file with proper error handling"""
+    try:
+        # Load existing feedback
+        try:
+            with open(FEEDBACK_FILE_PATH, 'r') as file:
+                feedback_list = json.load(file)
+        except FileNotFoundError:
+            feedback_list = []
+        except json.JSONDecodeError:
+            logging.warning("Corrupted feedback file, starting fresh")
+            feedback_list = []
 
-    return jsonify({'message': 'Feedback received'}), 200
+        # Append new feedback with timestamp
+        feedback_list.append({
+            'filename': filename,
+            'isCorrect': is_correct,
+            'timestamp': time.time()
+        })
+
+        # Save feedback
+        with open(FEEDBACK_FILE_PATH, 'w') as file:
+            json.dump(feedback_list, file, indent=2)
+            
+        logging.info(f"Feedback saved for {filename}: {is_correct}")
+        
+    except Exception as e:
+        logging.error(f"Error saving feedback to file: {e}")
+        raise
+
+def add_feedback_to_accumulator(filename, is_correct):
+    """Add feedback to accumulator and trigger retraining if needed"""
+    try:
+        # Load and preprocess the image
+        image_path = DESTINATION_PATH / filename
+        if not image_path.exists():
+            logging.warning(f"Image file not found: {filename}")
+            return
+        
+        img = cv2.imread(str(image_path))
+        if img is None:
+            logging.warning(f"Could not load image: {filename}")
+            return
+        
+        # Preprocess image for training
+        processed_img = preprocess_image(img)
+        
+        # Convert feedback to training label
+        # True = correct prediction, False = incorrect prediction
+        # You may need to adjust this logic based on your specific needs
+        label = 1 if is_correct else 0
+        
+        # Add to accumulator
+        feedback_accumulator.append((processed_img, label))
+        
+        logging.info(f"Added feedback to accumulator: {filename} -> {label}")
+        logging.info(f"Accumulator size: {len(feedback_accumulator)}/{FEEDBACK_BATCH_SIZE}")
+        
+        # Check if we have enough feedback to retrain
+        if len(feedback_accumulator) >= FEEDBACK_BATCH_SIZE:
+            # Start retraining in a separate thread to avoid blocking the response
+            threading.Thread(target=retrain_model, daemon=True).start()
+            
+    except Exception as e:
+        logging.error(f"Error adding feedback to accumulator: {e}")
+        raise
 
 @app.route('/images/<filename>')
 def serve_image(filename):
@@ -247,22 +306,13 @@ def download_results_geojson():
         logging.error(f"Error sending results.geojson: {e}")
         return jsonify({"message": "Error sending results.geojson"}), 500
 
-
 def predict_img(img):
-    img_resized = cv2.resize(img, (256,256))
+    img_resized = cv2.resize(img, (256, 256))
     img_normalized = img_resized / 255.0
     img_expanded = np.expand_dims(img_normalized, axis=0)
 
     prediction = model.predict(img_expanded)
-
     return prediction[0][0]
-
-# import random
-
-# def predict_img(img):
-#     # return model.predict(...) in production
-#     return random.uniform(0.7, 1)
-
 
 def get_gps_data(image_path):
     try:
@@ -280,7 +330,6 @@ def get_gps_data(image_path):
         # Return arbitrary/fake GPS coordinates for testing
         return {'lat': 42.9634, 'lon': -85.6681}  # Example: Grand Rapids, MI
 
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -293,10 +342,13 @@ def get_decimal_coordinates(info):
                 sub_decoded = ExifTags.GPSTAGS.get(t, t)
                 gps_data[sub_decoded] = value[t]
 
-            gps_lat = gps_data['GPSLatitude']
-            gps_lat_ref = gps_data['GPSLatitudeRef']
-            gps_lon = gps_data['GPSLongitude']
-            gps_lon_ref = gps_data['GPSLongitudeRef']
+            gps_lat = gps_data.get('GPSLatitude')
+            gps_lat_ref = gps_data.get('GPSLatitudeRef')
+            gps_lon = gps_data.get('GPSLongitude')
+            gps_lon_ref = gps_data.get('GPSLongitudeRef')
+
+            if not all([gps_lat, gps_lat_ref, gps_lon, gps_lon_ref]):
+                return None, None
 
             lat = convert_to_degrees(gps_lat)
             if gps_lat_ref != "N":
@@ -314,42 +366,78 @@ def convert_to_degrees(value):
     return d + (m / 60.0) + (s / 3600.0)
 
 def load_original_data_subset(size=50):
+    """Load original training data - replace with your actual data loading logic"""
+    # This is a placeholder - replace with your actual data loading
     original_training_data = np.random.rand(size, 256, 256, 3)
     original_labels = np.random.randint(0, 2, size)
     return original_training_data, original_labels
 
-def retrain_model(): #Newly Added
-    if len(feedback_accumulator) < FEEDBACK_BATCH_SIZE:
-        logging.info("Not enough feedback data to retrain. Waiting for more feedback samples.")
-        return
+def retrain_model():
+    """Retrain the model with accumulated feedback data"""
+    global feedback_accumulator
+    
+    try:
+        if len(feedback_accumulator) < FEEDBACK_BATCH_SIZE:
+            logging.info("Not enough feedback data to retrain. Waiting for more feedback samples.")
+            return
 
-    logging.info("Retraining the model with accumulated feedback data.")
-    original_data, original_labels = load_original_data_subset(size=50)
+        logging.info("Starting model retraining with accumulated feedback data.")
+        
+        # Load original training data
+        original_data, original_labels = load_original_data_subset(size=50)
 
-    feedback_data, feedback_labels = zip(*feedback_accumulator)
-    feedback_data = np.array(feedback_data)
-    feedback_labels = np.array(feedback_labels)
+        # Extract feedback data
+        feedback_data, feedback_labels = zip(*feedback_accumulator)
+        feedback_data = np.array(feedback_data)
+        feedback_labels = np.array(feedback_labels)
 
-    x_train = np.concatenate([feedback_data, original_data])
-    y_train = np.concatenate([feedback_labels, original_labels])
+        # Combine original and feedback data
+        x_train = np.concatenate([feedback_data, original_data])
+        y_train = np.concatenate([feedback_labels, original_labels])
 
-    x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.2, random_state=42)
+        # Split data for training and validation
+        x_train, x_val, y_train, y_val = train_test_split(
+            x_train, y_train, test_size=0.2, random_state=42
+        )
 
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
-                  loss='binary_crossentropy', metrics=['accuracy'])
+        # Configure model for retraining
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
+            loss='binary_crossentropy',
+            metrics=['accuracy']
+        )
 
-    model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=3, batch_size=4, verbose=1)
-    model.save(MODEL_PATH)
-    feedback_accumulator.clear()
-    logging.info("Model retrained and saved successfully.")
+        # Train the model
+        history = model.fit(
+            x_train, y_train,
+            validation_data=(x_val, y_val),
+            epochs=3,
+            batch_size=4,
+            verbose=1
+        )
 
+        # Save the retrained model
+        model.save(MODEL_PATH)
+        
+        # Clear the feedback accumulator
+        feedback_accumulator.clear()
+        
+        logging.info("Model retrained and saved successfully.")
+        logging.info(f"Final training accuracy: {history.history['accuracy'][-1]:.4f}")
+        logging.info(f"Final validation accuracy: {history.history['val_accuracy'][-1]:.4f}")
+        
+    except Exception as e:
+        logging.error(f"Error during model retraining: {e}")
+        # Don't clear the accumulator if retraining failed
+        raise
 
 def preprocess_image(img):
+    """Preprocess image for training"""
     img_resized = cv2.resize(img, (256, 256))
-    img_normalized = img_resized / 255.0
+    img_normalized = img_resized.astype(np.float32) / 255.0
     return img_normalized
 
 if __name__ == "__main__":
     host = os.getenv('FLASK_RUN_HOST', '0.0.0.0')
     port = int(os.getenv('FLASK_RUN_PORT', 5001))
-    app.run(host=host, port=5001, debug=True)
+    app.run(host=host, port=port, debug=True)

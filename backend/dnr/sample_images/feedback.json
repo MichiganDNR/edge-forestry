@@ -1,1 +1,27 @@
-[{"filename": "DJI_20250612095443_0013_D.JPG", "isCorrect": true}]
+[
+  {
+    "filename": "DJI_20250612095443_0013_D.JPG",
+    "isCorrect": true
+  },
+  {
+    "filename": "DJI_20250612104720_0080_D.JPG",
+    "isCorrect": true
+  },
+  {
+    "filename": "DJI_20250612095521_0040_D.JPG",
+    "isCorrect": true
+  },
+  {
+    "filename": "DJI_20250612095443_0013_D.JPG",
+    "isCorrect": true
+  },
+  {
+    "filename": "test.jpg",
+    "isCorrect": true
+  },
+  {
+    "filename": "DJI_20250612095443_0013_D.JPG",
+    "isCorrect": true,
+    "timestamp": 1752194386.35281
+  }
+]
