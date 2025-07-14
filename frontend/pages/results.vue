@@ -145,9 +145,8 @@ import ResultCard from '~/components/resultCard.vue'
 import axios from 'axios'
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll } from 'firebase/storage'
 import { getAuth } from 'firebase/auth'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc} from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
-import { doc, getDoc } from 'firebase/firestore'
 
 const userStore = useUserStore()
 const user = userStore.user  // reactive user object
@@ -178,6 +177,7 @@ const route = useRoute()
 const isPastUpload = route.query.fromHistory === 'true'
 const uploadId = route.query.id
 const uid = route.query.uid
+const profileData = ref({})
 
 
 const openProbabilityDropdown = ref(false)
@@ -317,7 +317,7 @@ async function handleSeeResults() {
     return
   }
 
-  const confirmed = confirm('Are you sure you want to analyze and view results for this entry?')
+  const confirmed = confirm('Are you sure you want to analyze and view results for this entry? It will cost one credit.')
   if (!confirmed) return
 
   const formData = new FormData()
@@ -328,6 +328,28 @@ async function handleSeeResults() {
 
   loading.value = true
   try {
+    const userRef = doc(db, 'users', user.uid)
+    const userSnap = await getDoc(userRef)
+
+    if (userSnap.exists()) {
+      const data = userSnap.data()
+      profileData.value = {
+        email: data.email,
+        credit: data.credit,
+        membership: data.membership || 'Free',
+      }
+    }
+    if (!userSnap.exists()) {
+      alert("User record not found.")
+      return
+    }
+
+    const userData = userSnap.data()
+    if (!userData.credit || userData.credit <= 0) {
+      alert("You don't have enough credits to view results. Please purchase more to continue.")
+      return
+    }
+
     // Upload to backend and get predictions
     const response = await axios.post(`${apiURL}/upload-images`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -362,11 +384,10 @@ async function handleSeeResults() {
     geojsonBlob.data
   )
 
-    alert('Entry saved successfully!')
-    showMap.value = false
-    setTimeout(() => {
-      showMap.value = true
-    }, 0)
+    // Deduct 1 credit from user document in Firestore
+    await updateDoc(userRef, {
+      credit: increment(-1)
+    })
 
   } catch (err) {
     console.error('Error during analysis:', err)

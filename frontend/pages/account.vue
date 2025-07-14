@@ -15,7 +15,8 @@
       <div v-else class="space-y-4 text-lg text-green-950">
         <div><span class="font-semibold">Email:</span> {{ profileData.email }}</div>
         <div><span class="font-semibold">Membership:</span> {{ profileData.membership }}</div>
-        <div><span class="font-semibold">Credits:</span> {{ profileData.credit }}</div>
+        <div v-if="profileData.credit < 1000"><span class="font-semibold">Credits:</span> {{ profileData.credit }}</div>
+        <div v-else ><span class="font-semibold">Credits:</span> Unlimited</div>
         <button @click="handleLogout" class="bg-green-700 rounded-2xl w-1/4 text-white hover:bg-green-800 py-2">
           Log Out
         </button>
