@@ -30,12 +30,7 @@
     <div class="text-green-950 text-sm">
       <strong>Coordinates:</strong><br> {{ coordinates[0] }}, {{ coordinates[1] }}
     </div>
-
-    <!-- Probability 
-    <div class="text-green-950 text-sm">
-      <strong>Probability:</strong><br> {{ (probability * 100).toFixed(2) }}%
-    </div> -->
-
+    
     <!-- Feedback Buttons -->
     <div class="flex flex-row gap-2 mt-2">
       <button
@@ -80,24 +75,3 @@ const bgClass = computed(() => {
   return 'bg-white'
 })
 </script>
-
-
-<!--const sendFeedback = async (feedbackType) => {
-  try {
-    await fetch('/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fileName,
-        probability,
-        coordinates,
-        feedback: feedbackType,
-        disease: selectedDiseaseDropdown
-      })
-    })
-    alert('Feedback sent!')
-  } catch (err) {
-    console.error('Feedback failed:', err)
-    alert('Failed to send feedback.')
-  }
-} -->

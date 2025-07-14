@@ -1,9 +1,11 @@
 <template>
   <Appear>
+    <!-- Page Title -->
     <h1 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
       Account
     </h1>
 
+    <!-- Section: Profile Information -->
     <h2 class="text-2xl font-medium text-green-950 text-center mt-10">
       Profile Information
     </h2>
@@ -20,14 +22,16 @@
       </div>
     </div>
 
+    <!-- Section: Past Results with sorting, table, and pagination -->
     <div class="max-w-8xl mx-auto mt-12 px-4">
       <h2 class="text-2xl font-medium mb-4 text-green-950 text-center">Past Results</h2>
 
+      <!-- Loading and empty states -->
       <div v-if="loadingUploads" class="text-center text-gray-500">Loading past results...</div>
       <div v-else-if="pastUploads.length === 0" class="text-center text-gray-500">No uploads found.</div>
 
       <div v-else>
-        <!-- Sorting Dropdown -->
+        <!-- Sort Options Dropdown -->
         <div class="text-left mb-4 ml-50">
           <label class="text-green-950 mr-2 font-medium">Sort by:</label>
           <select
@@ -54,6 +58,7 @@
               </tr>
             </thead>
             <tbody>
+              <!-- Individual row rendered via PastResultsCard component -->
               <PastResultsCard
                 v-for="upload in paginatedUploads"
                 :key="upload.id"
@@ -64,7 +69,7 @@
           </table>
         </div>
 
-        <!-- Pagination -->
+        <!-- Pagination Controls -->
         <div class="flex justify-center mt-4 space-x-2">
           <button
             @click="changePage(currentPage - 1)"
@@ -110,25 +115,27 @@ const { $auth, $db } = useNuxtApp()
 const userStore = useUserStore()
 const router = useRouter()
 
+// State for profile details and past uploads
 const profileData = ref({ email: '', credit: 0, membership: 'Free' })
 const pastUploads = ref([])
 const loading = ref(true)
 const loadingUploads = ref(true)
 const error = ref('')
 
-// Sort state
-const sortOption = ref('dateDesc') // default to newest first
+// Sorting state
+const sortOption = ref('dateDesc') // Default: newest first
 
-// Pagination
+// Pagination state
 const currentPage = ref(1)
 const itemsPerPage = 25
 
+// Fetch profile and upload data on page load
 onMounted(async () => {
   try {
     const user = $auth.currentUser
     if (!user) throw new Error('Not logged in')
 
-    // Profile Info
+    // Fetch profile info from Firestore
     const userDocRef = doc($db, 'users', user.uid)
     const userSnap = await getDoc(userDocRef)
     if (userSnap.exists()) {
@@ -140,11 +147,11 @@ onMounted(async () => {
       }
     }
 
-    // Past Uploads
+    // Fetch past uploads from nested Firestore collection
     const uploadsSnap = await getDocs(collection($db, 'users', user.uid, 'uploads'))
     pastUploads.value = uploadsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
 
-    // Convert Firestore Timestamp to JS Date
+    // Normalize timestamps to JavaScript Date objects
     pastUploads.value.forEach(upload => {
       if (upload.timestamp && typeof upload.timestamp.toDate === 'function') {
         upload.timestamp = upload.timestamp.toDate()
@@ -161,6 +168,7 @@ onMounted(async () => {
   }
 })
 
+// Sort uploads based on current sort option
 const sortedUploads = computed(() => {
   const uploadsToSort = [...pastUploads.value]
   switch (sortOption.value) {
@@ -184,21 +192,26 @@ const sortedUploads = computed(() => {
   }
 })
 
+// Return paginated slice of sorted results
 const paginatedUploads = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage
   return sortedUploads.value.slice(start, start + itemsPerPage)
 })
 
+// Calculate total page count
 const totalPages = computed(() => Math.ceil(sortedUploads.value.length / itemsPerPage))
 
+// Navigate to a new page if within bounds
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) currentPage.value = page
 }
 
+// Reset pagination when sort option changes
 const applySortOption = () => {
-  currentPage.value = 1 // Reset to page 1 when sorting changes
+  currentPage.value = 1
 }
 
+// Handle logout flow
 const handleLogout = async () => {
   try {
     await signOut($auth)
@@ -209,6 +222,7 @@ const handleLogout = async () => {
   }
 }
 
+// Navigate to results page for a selected upload
 const handleSeeResults = (upload) => {
   router.push({
     name: 'results',

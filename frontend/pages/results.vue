@@ -4,6 +4,7 @@
       Choose a Specification
     </h1>
 
+    <!-- Upload Photos Button and File Input Logic -->
     <div class="relative w-full flex justify-center px-4">
       <div class="absolute top-0 w-full flex flex-wrap items-center justify-center gap-4 z-[1100] mt-4">
         <input v-model="entryName" placeholder="Enter Entry Name" class="w-56 px-4 py-2 rounded-3xl border border-gray-300" />
@@ -13,6 +14,8 @@
             Upload Photos
           </button>
         </div>
+
+        <!-- Disease Selection Dropdown -->
         <div class="relative w-56">
           <button @click="openDiseaseDropdown = !openDiseaseDropdown" class="w-full bg-green-900 text-white text-center px-6 py-3 rounded-3xl font-semibold hover:bg-green-700 transition flex items-center justify-between">
             {{ selectedDiseaseLabel }}
@@ -26,6 +29,8 @@
             </button>
           </div>
         </div>
+
+        <!-- See Results Button and Amount of Files Display -->
         <button type="button" class="bg-green-900 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-3xl w-56" @click="handleSeeResults">
           See Results
         </button>
@@ -34,6 +39,7 @@
         </p>
       </div>
 
+      <!-- Map Display: CLIENT SIDE ONLY -->
       <ClientOnly>
         <div class="w-full md:w-11/12 lg:w-4/5 2xl:w-1/2 pt-25">
           <Map v-if="showMap" :geojson-url="geojsonLink"/>
@@ -41,17 +47,13 @@
       </ClientOnly>
     </div>
 
+    <!-- Results Section -->
     <div>
-      <!-- 
-      <h2 v-if="isPastUpload" class="text-center sm:font-normal leading-[0.9] text-green-950 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl mb-8 mt-12">
-        Viewing saved results from {{ entryTitle }}.
-      </h2> -->
-
       <h2 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
         Results
       </h2>
 
-      
+      <!-- Download Outputted Files Links -->
       <div class="flex justify-center items-start gap-6 mb-6">
         <div class="flex flex-col gap-2">
           <a v-if="csvLink" :href="csvLink" class="underline text-green-800 font-semibold" @click="handleDownload" download>
@@ -62,6 +64,7 @@
           </a>
         </div>
 
+        <!-- Probability Filter Dropdown-->
         <div class="relative w-56">
           <button
             @click="openProbabilityDropdown = !openProbabilityDropdown"
@@ -90,10 +93,12 @@
         </div>
       </div>
 
+      <!-- Message for No Results -->
       <div v-if="paginatedResults.length === 0" class="text-green-950 font-medium text-center text-xl mt-20 mb-35">
         No results to display.
       </div>
 
+      <!-- Result Card Template and Display Logic -->
       <div v-else class="flex justify-center flex-wrap gap-4 mt-6">
         <ResultCard
           v-for="(result, index) in paginatedResults"
@@ -106,6 +111,7 @@
         />
       </div>
 
+      <!-- Pagination: Prev/Next -->
       <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-6">
         <button
           @click="currentPage--"
@@ -165,7 +171,7 @@ const results = ref([])
 const showMap = ref(true)
 const currentPage = ref(1)
 const itemsPerPage = 28
-const apiURL = 'http://localhost:5001'
+const apiURL = 'http://localhost:5001' // Backend Hosted Port
 const csvLink= ref(null)
 const geojsonLink = ref(null)
 const route = useRoute()
@@ -180,9 +186,10 @@ const openDiseaseDropdown = ref(false)
 const selectedDiseaseDropdown = ref(null)
 const selectedDisease = ref(null)
 
-const probabilities = ['All','No Condition: <70%','Possibility: 70-90%','High Chance: 90-99.5%','Has Condition: >99.5%']
-const diseases = ['Oak Wilt','Hemlock Woolly Adelgid','Beech Bark Disease','Beech Leaf Disease']
+const probabilities = ['All','No Condition: <70%','Possibility: 70-90%','High Chance: 90-99.5%','Has Condition: >99.5%'] // Prob. Filter Vars
+const diseases = ['Oak Wilt','Hemlock Woolly Adelgid','Beech Bark Disease','Beech Leaf Disease'] // Disease Filter Vars
 
+// Default UI for Dropdowns
 const selectedProbabilityLabel = computed(() => selectedProbabilityDropdown.value || 'Choose Probability')
 const selectedDiseaseLabel = computed(() => selectedDiseaseDropdown.value || 'Choose Disease')
 
@@ -226,6 +233,7 @@ function triggerFileInput() {
   fileInput.value?.click()
 }
 
+//File Upload Logic/Restrictions 
 function handleFileUpload(event) {
   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg']
   const files = Array.from(event.target.files)
@@ -256,6 +264,7 @@ function selectDiseaseDropdown(disease) {
   openDiseaseDropdown.value = false
 }
 
+// Filter Probabilities Display Logic || CASES MUST MATCH PROBABILITIES CONSTANT
 function isWithinSelectedProbability(prob) {
   const label = selectedProbabilityDropdown.value
   if (!label || label === 'All') return true
@@ -287,9 +296,10 @@ function handleBeforeUnload(event) {
   }
 }
 
+// Guard for leaving the page
 onBeforeRouteLeave((to, from, next) => {
   if (results.value.length > 0) {
-    const answer = window.confirm('Are you sure you want to leave this page? Your results will be lost on this page.')
+    const answer = window.confirm('Are you sure you want to leave this page? Your results are saved in past uploads in account, but will be lost on this page.')
     if (answer) {
       next()
     } else {
@@ -300,6 +310,7 @@ onBeforeRouteLeave((to, from, next) => {
   }
 })
 
+// Ensures no value needed for backend is empty
 async function handleSeeResults() {
   if (uploadedFiles.value == 0|| !selectedDiseaseDropdown.value || !entryName.value) {
     alert('Please upload a file, select a disease type, and enter an entry name.')
@@ -365,6 +376,7 @@ async function handleSeeResults() {
   }
 }
 
+// Past Uploads Loading and Display Logic
 async function loadPastUpload() {
   try {
     if (!uid || !uploadId) throw new Error('Missing upload info.')
@@ -413,7 +425,7 @@ async function handleFeedback(fileName, isCorrect) {
   }
 }
 
-
+// Upload files validation and file input logic
 async function uploadFiles(uploadedFiles, entryName, disease, backendResults, csvBlob, geojsonBlob) {
   loading.value = true
   try {

@@ -1,6 +1,7 @@
 <template>
   <div class="space-y-12 bg-white">
     <Appear>
+      <!-- Hero Section -->
       <section class="relative w-screen min-h-screen overflow-hidden">
         <div class="relative z-10 scroll-mt-20 py-20 px-4 text-center">
           <div class="w-full max-w-7xl mx-auto">
@@ -10,7 +11,8 @@
                   <span>AI Powered</span><br>
                   <span class="text-green-900">Tree<br>Diagnosis</span>
                 </h1>
-
+                
+                <!-- Hero Text/CTA -->
                 <p class="text-green-950 text-sm sm:text-base lg:text-lg leading-relaxed font-light max-w-xl">
                   Upload a photo — We'll analyze the pictures for probability of a variety of diseases and map them for you.
                 </p>
@@ -20,15 +22,18 @@
                 </div>
               </div>
 
+              <!-- Hero Images/Slideshow Logic -->
               <div class="lg:col-span-6 flex justify-center">
                 <div class="w-full aspect-[3/4] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl 2xl:max-h-[700px] max-h-[600px] overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl relative">
-                  <img
-                    :key="currentImageIndex"
-                    :src="currentImageSrc"
-                    alt="Aerial view of forest canopy showing healthy trees"
-                    class="w-full h-full object-cover object-center"
-                  />
-
+                  <!-- Transition wrapper for fading between images -->
+                  <transition name="fade" mode="out-in">
+                    <img
+                      :key="currentImageIndex"
+                      :src="currentImageSrc"
+                      alt="Aerial view of forest canopy showing healthy trees"
+                      class="w-full h-full object-cover object-center bg-gray-100"
+                    />
+                  </transition>
                   <button
                     @click="prevImage"
                     class="absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 text-green-800 p-2 rounded-full z-10 hover:bg-opacity-75 focus:outline-none"
@@ -58,15 +63,17 @@
       </section>
     </Appear>
 
+    <!-- How It Works -->
     <SectionWrapper
       id="how-it-works"
       tag="How It Works"
       title="See the Process"
       description="Upload pictures of trees for instant analysis. Our AI predicts disease probability."
     >
+    <!-- How It Works Video -->
       <div class="w-full max-w-2xl mx-auto h-[350px] mb-7 2xl:max-w-4xl 2xl:h-[550px] bg-white rounded-2xl shadow-md border border-gray-200">
         <video
-          src="/video/EFDemo.mov"
+          src="public/video/EFDemo.mov"
           controls
           class="w-full h-auto rounded-2xl"
         >
@@ -78,6 +85,7 @@
       </div>
     </SectionWrapper>
 
+    <!-- Packages Section -->
     <SectionWrapper id="packages" tag="Packages" title="Pay by needs." class="flex justify-center">
       <div class="w-full max-w-md m-8 h-[300px] 2xl:max-w-2xl 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-green-700
     hover:scale-105 transform transition-all duration-300">
@@ -88,6 +96,7 @@
       </div>
     </SectionWrapper>
 
+    <!-- FAQs Section -->
     <SectionWrapper id="faqs" tag="FAQs" title="Frequently Asked Questions">
       <div class="max-w-3xl mx-auto space-y-4 2xl:space-y-8 2xl:mt-10">
         <div v-for="(faq, index) in faqState.items" :key="index" class="border p-4 rounded-xl shadow-sm">
@@ -102,12 +111,15 @@
       </div>
     </SectionWrapper>
 
+    <!-- About Us Section -->
     <SectionWrapper
       id="about-us"
       tag="About Us"
       title="Meet the Team"
       description="Edge Forestry is redefining how we detect and manage plant conditions using AI."
     >
+
+      <!-- About Us Images -->
       <div class="w-full flex justify-center mb-7">
         <div class="flex flex-row gap-4">
           <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
@@ -147,12 +159,14 @@
       </div>
     </SectionWrapper>
 
+    <!-- Contact Us Section -->
     <SectionWrapper
       id="contact-us"
       tag="Contact Us"
       title="Get in Touch"
       description="Have a question? We're here to help."
     >
+      <!-- Validation Checking/Form Logic -->
       <form @submit.prevent="sendEmail" class="max-w-2xl mx-auto space-y-6 text-green-950">
         <div>
           <label for="name" class="block text-center sm:text-left">Name</label>
@@ -225,10 +239,12 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+// Redirects to results(interactive) page
 const goToPage = () => {
     router.push('/results')
 }
 
+// Hero Slideshow Logic
 const heroImages = ref([
   '/images/pic.webp', 
   '/images/OWE1.png', 
@@ -243,7 +259,6 @@ const nextImage = () => {
   currentImageIndex.value = (currentImageIndex.value + 1) % heroImages.value.length;
 };
 
-
 const prevImage = () => {
 
   currentImageIndex.value = (currentImageIndex.value - 1 + heroImages.value.length) % heroImages.value.length;
@@ -253,7 +268,7 @@ const goToImage = (index) => {
   currentImageIndex.value = index;
 };
 
-
+// Form Backend Config
 const EMAILJS_CONFIG = {
   serviceId: 'service_817br4o',
   templateId: 'template_1unsqk9',
@@ -270,6 +285,7 @@ const formState = ref({
   validationErrors: {}
 })
 
+// FAQ Questions and Answers
 const faqState = ref({
   items: [
     {
@@ -299,21 +315,7 @@ const faqState = ref({
   ]
 })
 
-const scrollToSection = (id) => {
-  if (id === 'top') {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    return
-  }
-
-  const el = document.getElementById(id)
-  if (el) {
-    window.scrollTo({
-      top: el.offsetTop - 40,
-      behavior: 'smooth'
-    })
-  }
-}
-
+//Contact Us Form Validation
 const validateForm = () => {
   const errors = {}
   const { name, email, message } = formState.value

@@ -1,10 +1,12 @@
 <template>
+  <!-- Map container rendered in DOM -->
   <div id="map" class="map-container"></div>
 </template>
 
 <script setup>
 import { onMounted, onBeforeUnmount, watch } from 'vue'
 
+// Define component props, expects a GeoJSON URL (string or null)
 const props = defineProps({
   geojsonUrl: {
     type: [String, null],
@@ -12,11 +14,11 @@ const props = defineProps({
   },
 })
 
-let map = null
-let L = null
-let geojsonLayer = null
+let map = null     // Leaflet map instance
+let L = null       // Leaflet library reference (dynamically imported)
+let geojsonLayer = null // Layer for GeoJSON features
 
-// Select marker icon based on probability
+// Returns a Leaflet icon based on the provided probability value
 function getIcon(probability) {
   const value = parseFloat(probability?.replace('%', '')) || 0
   let iconName = 'green.png'
@@ -31,12 +33,14 @@ function getIcon(probability) {
   })
 }
 
+// Initialize map on component mount (only in client-side environment)
 onMounted(async () => {
   if (import.meta.client) {
     L = (await import('leaflet')).default
 
-    map = L.map('map').setView([37.7749, -122.4194], 10)
+    map = L.map('map').setView([37.7749, -122.4194], 10) // Centered on San Francisco
 
+    // Add OpenStreetMap tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map)
@@ -45,6 +49,7 @@ onMounted(async () => {
   }
 })
 
+// Clean up Leaflet map instance when component is unmounted
 onBeforeUnmount(() => {
   if (map) {
     map.remove()
@@ -52,10 +57,12 @@ onBeforeUnmount(() => {
   }
 })
 
+// Reactively reload GeoJSON layer when the URL prop changes
 watch(
   () => props.geojsonUrl,
   async (newUrl) => {
     if (!map) return
+
     if (geojsonLayer) {
       geojsonLayer.remove()
       geojsonLayer = null
@@ -69,6 +76,7 @@ watch(
   }
 )
 
+// Fetch GeoJSON data and render features with custom markers and popups
 async function loadGeoJSON(url) {
   try {
     const res = await fetch(url)
@@ -80,10 +88,12 @@ async function loadGeoJSON(url) {
     }
 
     geojsonLayer = L.geoJSON(data, {
+      // Convert GeoJSON point to a marker with custom icon
       pointToLayer: (feature, latlng) => {
         const icon = getIcon(feature.properties?.prediction)
         return L.marker(latlng, { icon })
       },
+      // Define content and style for each feature's popup
       onEachFeature: (feature, layer) => {
         const { classification = 'N/A', prediction = 'N/A' } = feature.properties || {}
         const [lng, lat] = feature.geometry?.coordinates || []
@@ -108,7 +118,7 @@ async function loadGeoJSON(url) {
       },
     }).addTo(map)
 
-    map.fitBounds(geojsonLayer.getBounds())
+    map.fitBounds(geojsonLayer.getBounds()) // Adjust view to fit all markers
   } catch (error) {
     console.error('Error loading GeoJSON:', error)
   }
@@ -116,17 +126,18 @@ async function loadGeoJSON(url) {
 </script>
 
 <style scoped>
+/* Style for the map container */
 .map-container {
   width: 100%;
   height: 500px;
   border-radius: 1rem;
-  border: 2px solid #f3f4f6; /* light gray border */
+  border: 2px solid #f3f4f6; 
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 </style>
 
 <style>
-/* Optional: override default Leaflet popup style if needed */
+/* Custom popup styling for Tailwind-styled content */
 .leaflet-popup-content-wrapper.tailwind-popup {
   background: transparent;
   box-shadow: none;
@@ -138,4 +149,3 @@ async function loadGeoJSON(url) {
   margin: 0;
 }
 </style>
-
