@@ -66,7 +66,7 @@
     >
       <div class="w-full max-w-2xl mx-auto h-[350px] mb-7 2xl:max-w-4xl 2xl:h-[550px] bg-white rounded-2xl shadow-md border border-gray-200">
         <video
-          src="/video/OakWiltDemoV1.mp4"
+          src="/video/EFDemo.mov"
           controls
           class="w-full h-auto rounded-2xl"
         >
@@ -231,8 +231,8 @@ const goToPage = () => {
 
 const heroImages = ref([
   '/images/pic.webp', 
-  '/images/pic2.webp', 
-  '/images/pic3.webp',
+  '/images/OWE1.png', 
+  '/images/OWE2.png',
 ]);
 
 const currentImageIndex = ref(0);
