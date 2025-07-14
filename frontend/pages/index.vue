@@ -247,8 +247,8 @@ const goToPage = () => {
 // Hero Slideshow Logic
 const heroImages = ref([
   '/images/pic.webp', 
-  '/images/OWE1.png', 
-  '/images/OWE2.png',
+  '/images/positiveOW1.png', 
+  '/images/positiveOW2.png',
 ]);
 
 const currentImageIndex = ref(0);
