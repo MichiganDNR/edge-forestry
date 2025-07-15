@@ -113,7 +113,7 @@ const handleSignUp = async () => {
       //Create user doc in Firestore
       await setDoc(doc($db, 'users', user.uid), {
         email: email.value,
-        credit: 0,
+        credit: 10,
         createdAt: serverTimestamp()
       })
 

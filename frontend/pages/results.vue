@@ -42,13 +42,17 @@
       <!-- Map Display: CLIENT SIDE ONLY -->
       <ClientOnly>
         <div class="w-full md:w-11/12 lg:w-4/5 2xl:w-1/2 pt-25">
-          <Map v-if="showMap" :geojson-url="geojsonLink"/>
+          <Map v-if="showMap && !loading" :geojson-url="geojsonLink"/>
         </div>
       </ClientOnly>
     </div>
 
     <!-- Results Section -->
-    <div>
+    <div v-if="loading" class="flex justify-center items-center min-h-[200px]">
+        <span class="text-lg text-green-800 animate-pulse">Loading results, please wait...</span>
+    </div>
+
+    <div v-if="!loading && showMap">
       <h2 class="text-center sm:font-normal leading-[0.9] text-green-950 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-8 mt-12">
         Results
       </h2>
@@ -219,7 +223,6 @@ onMounted(() => {
   }
 })
 
-
 onBeforeUnmount(() => window.removeEventListener('click', handleClick))
 
 function handleClick(e) {
@@ -246,7 +249,6 @@ function handleFileUpload(event) {
     uploadedFiles.value = validFiles
   }
 }
-
 
 function selectProbabilityDropdown(probability) {
   selectedProbabilityDropdown.value = probability
@@ -317,7 +319,7 @@ async function handleSeeResults() {
     return
   }
 
-  const confirmed = confirm('Are you sure you want to analyze and view results for this entry? It will cost one credit.')
+  const confirmed = confirm(`Are you sure you want to analyze and view results for this entry? It will cost ${uploadedFiles.value.length} credit${uploadedFiles.value.length !== 1 ? 's' : ''}.`)
   if (!confirmed) return
 
   const formData = new FormData()
@@ -345,8 +347,8 @@ async function handleSeeResults() {
     }
 
     const userData = userSnap.data()
-    if (!userData.credit || userData.credit <= 0) {
-      alert("You don't have enough credits to view results. Please purchase more to continue.")
+    if (!userData.credit || userData.credit <= uploadedFiles.value.length) {
+      alert(`You don't have enough credits to view results. You need ${uploadedFiles.value.length - userData.credit} credit(s) to continue.`)
       return
     }
 
@@ -386,7 +388,7 @@ async function handleSeeResults() {
 
     // Deduct 1 credit from user document in Firestore
     await updateDoc(userRef, {
-      credit: increment(-1)
+      credit: increment(-uploadedFiles.value.length)
     })
 
   } catch (err) {
