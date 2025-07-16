@@ -151,9 +151,11 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll } f
 import { getAuth } from 'firebase/auth'
 import { collection, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc} from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
+import { getPerformance, trace } from 'firebase/performance'
 
 const userStore = useUserStore()
 const user = userStore.user  // reactive user object
+const perf = getPerformance()
 
 if (user) {
   const uid = user.uid
@@ -182,7 +184,6 @@ const isPastUpload = route.query.fromHistory === 'true'
 const uploadId = route.query.id
 const uid = route.query.uid
 const profileData = ref({})
-
 
 const openProbabilityDropdown = ref(false)
 const selectedProbabilityDropdown = ref(null)
@@ -329,6 +330,10 @@ async function handleSeeResults() {
   formData.append('disease', selectedDiseaseDropdown.value)
 
   loading.value = true
+
+  const t = trace(perf, 'analyze-results')
+  //t.start()
+  
   try {
     const userRef = doc(db, 'users', user.uid)
     const userSnap = await getDoc(userRef)
@@ -395,6 +400,7 @@ async function handleSeeResults() {
     console.error('Error during analysis:', err)
     alert('Error processing your file or saving the entry.')
   } finally {
+   // t.stop()
     loading.value = false
   }
 }

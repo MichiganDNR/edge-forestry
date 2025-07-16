@@ -3,6 +3,7 @@ import { initializeApp } from 'firebase/app'
 import { getAuth, setPersistence, browserSessionPersistence, onAuthStateChanged } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
+import { getPerformance } from "firebase/performance";
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   const firebaseConfig = {
@@ -19,6 +20,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   const app = initializeApp(firebaseConfig)
   const auth = getAuth(app)
   const db = getFirestore(app)
+  // Initialize Performance Monitoring and get a reference to the service
+  if (typeof window !== 'undefined') {
+    getPerformance(app)
+  }
 
   await setPersistence(auth, browserSessionPersistence)
 
