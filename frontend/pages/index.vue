@@ -73,7 +73,7 @@
     <!-- How It Works Video -->
       <div class="w-full max-w-2xl mx-auto h-[350px] mb-7 2xl:max-w-4xl 2xl:h-[550px] bg-white rounded-2xl shadow-md border border-gray-200">
         <video
-          src="public/video/EFDemo1.mov"
+          src="public/video/EFDemo.mov"
           controls
           class="w-full h-auto rounded-2xl"
         >
@@ -270,8 +270,8 @@ const goToImage = (index) => {
 
 // Form Backend Config
 const EMAILJS_CONFIG = {
-  serviceId: 'service_817br4o',
-  templateId: 'template_1unsqk9',
+  serviceId: 'service_817br4o', 
+  templateId: 'template_efd5fe7', 
   publicKey: 'aRFiTIS1dQnPwbGDs'
 }
 
