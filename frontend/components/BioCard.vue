@@ -14,7 +14,7 @@
         <div
           class="absolute inset-0 flex flex-col items-center justify-start text-center
                  backdrop-blur-md bg-green-950 border border-green-900 rounded-2xl shadow-lg
-                 [backface-visibility:hidden] p-6 space-y-4"
+                 [backface-visibility:hidden] p-6 space-y-4 hover:scale-[1.02] hover-pulse-green transition-all duration-300"
         >
           <!-- Profile Image -->
             <div class="flex flex-col">
@@ -75,7 +75,7 @@
         <div
           class="absolute inset-0 flex flex-col items-center justify-center text-center
                  backdrop-blur-md bg-green-800/90 border border-green-900 rounded-2xl shadow-lg
-                 [transform:rotateY(180deg)] [backface-visibility:hidden] p-8"
+                 [transform:rotateY(180deg)] [backface-visibility:hidden] p-8 hover:scale[1.02] hover-pulse-green transition-all duration-300"
         >
           <h3 class="text-white text-xl font-semibold mb-4">About Me</h3>
           <p class="text-white/90 text-sm leading-relaxed max-w-xs">
@@ -104,16 +104,14 @@ const flipped = ref(false);
 <style scoped>
 @keyframes pulse-green {
   0%, 100% {
-    box-shadow: 0 0 0px #22c55e;
-    opacity: 0.9;
+    box-shadow: 0 0 10px rgba(34,197,94,0.7), 0 0 20px rgba(34,197,94,0.5);
   }
   50% {
-    box-shadow: 0 0 15px #22c55e;
-    opacity: 1;
+    box-shadow: 0 0 25px rgba(34,197,94,1), 0 0 40px rgba(34,197,94,0.9);
   }
 }
 
-.animate-pulse-green {
+.hover-pulse-green:hover {
   animation: pulse-green 2s infinite;
 }
 </style>

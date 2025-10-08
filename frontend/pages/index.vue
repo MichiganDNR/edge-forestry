@@ -72,13 +72,7 @@
     >
     <!-- How It Works Video -->
       <div class="w-full max-w-2xl mx-auto h-[350px] mb-7 2xl:max-w-4xl 2xl:h-[550px] bg-white rounded-2xl shadow-md border border-gray-200">
-        <video
-          src="public/video/EFDemo.mov"
-          controls
-          class="w-full h-auto rounded-2xl"
-        >
-      Your browser does not support the video tag.
-    </video>
+        <LiteYouTubeEmbed id="ndNM2lQHr4I" title="EF Demo" />
       </div>
       <div class="flex justify-center">
         <Button class="mt-7" label="Learn More" :scrollTo="'faqs'" />
@@ -122,39 +116,39 @@
       <!-- Bio Cards -->
       <div class="flex flex-wrap justify-center gap-x-6">
         <BioCard
-          name="Collin Brennan"
-          email="collin@example.com"
-          bio="Collin is an undergraduate computer science student at GVSU. Collin is passionate about turning ideas into solutions in attempt to solve real-world issues."
-          image="/images/Collin.png"
-          linkedin="https://linkedin.com/in/colbren04"
-        />
-
-        <BioCard
-          name="Ahsanul Kabir"
-          email="jane@example.com"
-          bio="Ahsanul is a graduate student and passionate software developer with multiple years of experience, specializing in deployment and full-stack development."
-          image="/images/Muttaki.png"
-          linkedin="https://www.linkedin.com/in/muttaki-bismoy/"
-        />
-
-        <BioCard
           name="Dr. Rahat Rafiq"
-          email="jane@example.com"
-          bio="Dr. Rafiq is an assistant professor and faculty mentor at GVSU. He has experience from working at startups in Silicon Valley to earning a PHD from the University of Colorado Boulder."
+          email="rafiqr@gvsu.edu"
+          bio="Dr. Rafiq is currently an assistant professor in the School of Computing. Before joining GVSU, Rahat worked at ThoughtSpot, a startup based in Palo Alto, California, for 14 months. He earned his Ph.D. from the University of Colorado Boulder, where he was one of the co-founding members of CUCyberSafety Lab."
           image="/images/Rahat.png"
           linkedin="https://www.linkedin.com/in/rahatibnrafiq/"
         />
 
         <BioCard
           name="Muttaki Bismoy"
-          email="jane@example.com"
-          bio="Muttaki is a software developer that works across the full-stack and specialize in AI/ML models. Currently a PHD candidate at University of Michigan."
+          email="bismoym@mail.gvsu.edu"
+          bio="Muttaki is a developer specializing in full-stack and applied machine learning. Building on his expertise in computer vision and reinforcement learning from human feedback, he developed and deployed our robust Oak wilt and HWA detection models. His projects have secured funding from PRTS, Michigan DNR, the City of Grand Haven, and MTRAC."
           image="/images/Muttaki.png"
           linkedin="https://www.linkedin.com/in/muttaki-bismoy/"
         />
 
+        <BioCard
+          name="Collin Brennan"
+          email="brenncol@mail.gvsu.edu"
+          bio="Collin earned a Bachelor’s degree in Cybersecurity and Information Assurance from Western Governors University in 2024. He is now pursuing a second Bachelor’s degree in Computer Science at Grand Valley State University. Collin is passionate about programming and enjoys using it as a creative outlet to bring innovative ideas to life."
+          image="/images/Collin.png"
+          linkedin="https://linkedin.com/in/colbren04"
+        />
+
+        <BioCard
+          name="Ahsanul Kabir"
+          email="kabirs@mail.gvsu.edu"
+          bio="Ahsanul is a graduate student and passionate software developer with multiple years of experience, specializing in deployment and full-stack development."
+          image="/images/Muttaki.png"
+          linkedin="https://www.linkedin.com/in/kowshid/"
+        />
+
       </div>
-          <div class="flex justify-center">
+          <div class="flex justify-center mt-6">
             <Button label="Learn More" href="https://www.gvsu.edu/bluenucleus/" external />
           </div>
         </SectionWrapper>
@@ -236,6 +230,8 @@ import SectionWrapper from '~/components/SectionWrapper.vue'
 import Service from '~/components/PackagesContainer.vue'
 import emailjs from '@emailjs/browser'
 import { useRouter } from 'vue-router'
+import LiteYouTubeEmbed from 'vue-lite-youtube-embed'
+import 'vue-lite-youtube-embed/style.css'
 
 const router = useRouter()
 
