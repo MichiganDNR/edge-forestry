@@ -119,45 +119,45 @@
       description="Edge Forestry is redefining how we detect and manage plant conditions using AI."
     >
 
-      <!-- About Us Images -->
-      <div class="w-full flex justify-center mb-7">
-        <div class="flex flex-row gap-4">
-          <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-            <a href="https://www.linkedin.com/in/rahatibnrafiq/">
-              <img
-                src="public/images/Rahat.png"
-                class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
-              />
-            </a>
-            <p class="mt-2 text-center text-green-950 font-medium">Rahat Rafiq</p>
-          </div>
+      <!-- Bio Cards -->
+      <div class="flex flex-wrap justify-center gap-x-6">
+        <BioCard
+          name="Collin Brennan"
+          email="collin@example.com"
+          bio="Collin is an undergraduate computer science student at GVSU. Collin is passionate about turning ideas into solutions in attempt to solve real-world issues."
+          image="/images/Collin.png"
+          linkedin="https://linkedin.com/in/colbren04"
+        />
 
-          <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-            <a href="https://www.linkedin.com/in/muttaki-bismoy/">
-              <img
-                src="public/images/Muttaki.png"
-                class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
-              />
-            </a>
-            <p class="mt-2 text-center text-green-950 font-medium">Muttaki Bismoy</p>
-          </div>
+        <BioCard
+          name="Ahsanul Kabir"
+          email="jane@example.com"
+          bio="Ahsanul is a graduate student and passionate software developer with multiple years of experience, specializing in deployment and full-stack development."
+          image="/images/Muttaki.png"
+          linkedin="https://www.linkedin.com/in/muttaki-bismoy/"
+        />
 
-          <div class="flex flex-col items-center w-64 h-[400px] 2xl:w-80 2xl:h-[500px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-            <a href="https://www.linkedin.com/in/collin-brennan-078407273/">
-              <img
-                src="public/images/Collin.png"
-                class="w-full h-[350px] 2xl:h-[450px] object-cover object-center"
-              />
-          </a>
-            <p class="mt-2 text-center text-green-950 font-medium">Collin Brennan</p>
-          </div>
-        </div>
+        <BioCard
+          name="Dr. Rahat Rafiq"
+          email="jane@example.com"
+          bio="Dr. Rafiq is an assistant professor and faculty mentor at GVSU. He has experience from working at startups in Silicon Valley to earning a PHD from the University of Colorado Boulder."
+          image="/images/Rahat.png"
+          linkedin="https://www.linkedin.com/in/rahatibnrafiq/"
+        />
+
+        <BioCard
+          name="Muttaki Bismoy"
+          email="jane@example.com"
+          bio="Muttaki is a software developer that works across the full-stack and specialize in AI/ML models. Currently a PHD candidate at University of Michigan."
+          image="/images/Muttaki.png"
+          linkedin="https://www.linkedin.com/in/muttaki-bismoy/"
+        />
+
       </div>
-
-      <div class="flex justify-center">
-        <Button class="mt-7" label="Learn More" href="https://www.gvsu.edu/bluenucleus/" external />
-      </div>
-    </SectionWrapper>
+          <div class="flex justify-center">
+            <Button label="Learn More" href="https://www.gvsu.edu/bluenucleus/" external />
+          </div>
+        </SectionWrapper>
 
     <!-- Contact Us Section -->
     <SectionWrapper
