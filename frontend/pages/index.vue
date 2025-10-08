@@ -24,35 +24,34 @@
 
               <!-- Hero Images/Slideshow Logic -->
               <div class="lg:col-span-6 flex justify-center">
-                <div class="w-full aspect-[3/4] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl 2xl:max-h-[700px] max-h-[600px] overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl relative">
-                  <!-- Transition wrapper for fading between images -->
-                  <transition name="fade" mode="out-in">
+                <div
+                  class="w-full aspect-[3/4] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl 2xl:max-h-[700px] max-h-[600px] overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl relative bg-black"
+                >
+                  <!-- Instead of transition mode="out-in", we render both images overlapping -->
+                  <div class="absolute inset-0">
                     <img
-                      :key="currentImageIndex"
-                      :src="currentImageSrc"
-                      alt="Aerial view of forest canopy showing healthy trees"
-                      class="w-full h-full object-cover object-center bg-gray-100"
+                      v-for="(image, index) in heroImages"
+                      :key="index"
+                      :src="image"
+                      :alt="`Slide ${index + 1}`"
+                      class="absolute inset-0 w-full h-full object-cover object-center transition-all duration-[3000ms] ease-in-out"
+                      :class="{
+                        'opacity-100 blur-0 z-10': index === currentImageIndex,
+                        'opacity-0 blur-md z-0': index !== currentImageIndex
+                      }"
                     />
-                  </transition>
-                  <button
-                    @click="prevImage"
-                    class="absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 text-green-800 p-2 rounded-full z-10 hover:bg-opacity-75 focus:outline-none"
-                  >
-                    &#10094; </button>
-                  <button
-                    @click="nextImage"
-                    class="absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 text-green-800 p-2 rounded-full z-10 hover:bg-opacity-75 focus:outline-none"
-                  >
-                    &#10095; </button>
+                  </div>
 
-                  <div class="absolute bottom-4 flex space-x-2 z-10 w-full justify-center">
+                  <!-- Dots indicator -->
+                  <div class="absolute bottom-4 flex space-x-2 z-20 w-full justify-center">
                     <span
                       v-for="(image, index) in heroImages"
                       :key="index"
-                      @click="goToImage(index)"
-                      class="block w-3 h-3 rounded-full cursor-pointer transition-colors duration-300"
-                      :class="{ 'bg-white': index === currentImageIndex, 'bg-gray-400': index !== currentImageIndex }"
-                      aria-label="Go to slide"
+                      class="block w-3 h-3 rounded-full transition-colors duration-300"
+                      :class="{
+                        'bg-white': index === currentImageIndex,
+                        'bg-gray-400/70': index !== currentImageIndex
+                      }"
                     ></span>
                   </div>
                 </div>
@@ -223,7 +222,7 @@
 
 
 <script setup>
-import { ref, computed } from 'vue' 
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue' 
 import Button from '~/components/MainButton.vue'
 import Appear from '~/components/Appear.vue'
 import SectionWrapper from '~/components/SectionWrapper.vue'
@@ -241,28 +240,24 @@ const goToPage = () => {
 }
 
 // Hero Slideshow Logic
-const heroImages = ref([
+const heroImages = [
   '/images/pic.webp', 
   '/images/positiveOW1.png', 
   '/images/positiveOW2.png',
-]);
+]
 
-const currentImageIndex = ref(0);
+const currentImageIndex = ref(0)
+let interval = null
 
-const currentImageSrc = computed(() => heroImages.value[currentImageIndex.value]);
+// Automatically cycle through images
+onMounted(() => {
+  interval = setInterval(() => {
+    currentImageIndex.value =
+      (currentImageIndex.value + 1) % heroImages.length
+  }, 7000) // 7 seconds per image (slower, cinematic pace)
+})
 
-const nextImage = () => {
-  currentImageIndex.value = (currentImageIndex.value + 1) % heroImages.value.length;
-};
-
-const prevImage = () => {
-
-  currentImageIndex.value = (currentImageIndex.value - 1 + heroImages.value.length) % heroImages.value.length;
-};
-
-const goToImage = (index) => {
-  currentImageIndex.value = index;
-};
+onBeforeUnmount(() => clearInterval(interval))
 
 // Form Backend Config
 const EMAILJS_CONFIG = {
@@ -369,3 +364,9 @@ const toggleFaq = (index) => {
   faqState.value.items[index].open = !faqState.value.items[index].open
 }
 </script>
+
+<style scoped>
+img {
+  transition-property: opacity, filter, transform;
+}
+</style>
